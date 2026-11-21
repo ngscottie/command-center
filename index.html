@@ -203,7 +203,7 @@ const TYPES={
  nonprofit:{label:'Nonprofit',help:['Donor, grant and sponsor email answered fast, with thank-yous drafted','Volunteer and event sign-ups organized before deadlines','Posts that share your impact and bring in support']},
  coffee:{label:'Coffee shop',help:['Contractor, permit and vendor email tracked so opening day stays on schedule','Every quote and invoice in one place, nothing paid twice','Opening buzz on social before the doors open']},
  other:{label:'Other (type your own)',help:['Every inbox watched, money and problems first','Replies written for you to approve','Regular social posts so customers keep finding you']}};
-const tl=b=>b.type==='other'&&b.custom?b.custom:(TYPES[b.type]||TYPES.other).label;
+const tl=b=>b.key==='Personal'?'Personal and family':b.type==='other'||!TYPES[b.type]?(b.custom||'Other'):TYPES[b.type].label;
 const API='https://dxuwfxtgjpefmoadwuuu.supabase.co/functions/v1/api';
 let TOKEN=null;try{TOKEN=localStorage.getItem('cc_token')}catch(e){}
 (()=>{const m=location.hash.match(/(?:^#|&)t=([a-f0-9-]{60,})/);if(m){TOKEN=m[1];try{localStorage.setItem('cc_token',TOKEN);const s=JSON.parse(localStorage.getItem('occF')||'{}');s.setupDone=true;localStorage.setItem('occF',JSON.stringify(s))}catch(e){}history.replaceState(null,'',location.pathname)}})();
