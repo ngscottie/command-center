@@ -1,0 +1,11 @@
+{
+  "name": "command-center-wa-worker",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node index.mjs" },
+  "dependencies": {
+    "baileys": "7.0.0-rc14",
+    "pino": "^9.0.0"
+  }
+}

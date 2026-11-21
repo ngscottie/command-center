@@ -363,8 +363,28 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let EDIT=null,CONFIRM=null,CHATCONN=null;
-const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp Business',live:true,note:'Customer messages to your WhatsApp Business number.'},demo:{name:'Zalo (sample)',live:false}};
+let EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
+function waBox(){
+  const w=WAQR;
+  if(!w)return '<p class="sub" style="margin-top:10px">Your assistant reads your WhatsApp the same way WhatsApp Web does. It only reads; it never sends anything.</p>'
+    +'<div class="status" style="margin-top:8px"><b>Heads up:</b> this uses WhatsApp Web’s linking, which WhatsApp doesn’t officially support for apps like ours. WhatsApp could limit or ban the number. Try it on a number you can afford to lose first.</div>'
+    +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p>'
+    +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="waStart">I understand, show the code</button></div>';
+  if(w.status==='connected')return '<p style="font-weight:700;margin-top:12px">✓ WhatsApp connected'+(w.phone?' ('+esc('+'+String(w.phone).split(':')[0].split('@')[0])+')':'')+'.</p><p class="sub">Your chats from the last few days are coming in now. Your next briefing will include them.</p><div class="ibtns one" style="margin-top:14px"><button class="primary" id="waDone">Done</button></div>';
+  return '<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>On your phone, open <b>WhatsApp</b></span></li><li><i>2</i><span>Tap <b>Settings</b> (iPhone) or <b>⋮</b> (Android), then <b>Linked devices</b></span></li><li><i>3</i><span>Tap <b>Link a device</b> and point your phone at this code</span></li></ol>'
+    +'<div id="waQr" style="display:grid;place-items:center;min-height:240px;background:#fff;border-radius:12px;border:1px solid var(--line)">'+(w.qr&&window.qrcode?waSvg(w.qr):'<span class="sub" style="color:#555">'+(w.noWorker?'The WhatsApp connector isn’t switched on yet. We’re setting it up; try again soon.':'Getting your code ready…')+'</span>')+'</div>'
+    +'<p class="sub" style="font-size:13px;margin:8px 0 0">The code refreshes every so often. If you’re on the same phone, open this page on a computer or tablet to scan it.</p>'
+    +'<div class="ibtns one" style="margin-top:14px"><button id="waCancel">Cancel</button></div>';
+}
+function waSvg(t){try{const q=qrcode(0,'L');q.addData(t);q.make();return q.createSvgTag({cellSize:5,margin:2,scalable:true}).replace('<svg ','<svg style="width:240px;height:240px" ')}catch(e){return ''}}
+function waLoadLib(){return window.qrcode?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+function waPaint(){const b=$('#waBox');if(b)b.innerHTML=waBox()}
+function waStop(){clearInterval(WAQR_T);WAQR_T=null}
+async function waPoll(){if(!WAQR)return waStop();try{const r=await api('/chats/wa/status',{id:WAQR.id});const prev=WAQR.qr+WAQR.status;Object.assign(WAQR,r);WAQR.noWorker=!r.worker&&Date.now()-WAQR.t0>25000;
+  if(r.status==='connected'){waStop();loadState()}
+  if(r.status==='logged_out'){waStop();WAQR=null;CHATCONN='whatsapp_qr';render();return flash('That link didn’t finish. Try again.')}
+  if(prev!==WAQR.qr+WAQR.status||WAQR.noWorker)waPaint()}catch(e){}}
+const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp Business',live:true,note:'Customer messages to your WhatsApp Business number.'},whatsapp_qr:{name:'WhatsApp',live:true,note:'Scan a code with your phone, like WhatsApp Web. Reads your chats and groups.'},demo:{name:'Zalo (sample)',live:false}};
 function chatSheet(){
   const a=CHATCONN;
   let h='<div class="isheet" id="chSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="ibox"><b id="chTitle" style="font-size:18px">Connect a group chat</b>';
@@ -372,11 +392,12 @@ function chatSheet(){
     +'<input id="chTok" placeholder="Paste your GroupMe access token" autocomplete="off" spellcheck="false" style="width:100%">'
     +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">We read your groups and direct messages from the last few days. Nothing is posted to your chats.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect GroupMe</button></div>';
+  else if(a==='whatsapp_qr')h+='<div id="waBox">'+waBox()+'</div>';
   else if(a==='whatsapp')h+='<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>Open your WhatsApp setup in <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> (we set this up together the first time)</span></li><li><i>2</i><span>Under <b>WhatsApp → API Setup</b>, copy the <b>Phone number ID</b> and the <b>access token</b></span></li><li><i>3</i><span>Paste both here</span></li></ol>'
     +'<input id="chPid" placeholder="Phone number ID" inputmode="numeric" autocomplete="off" style="width:100%;margin-bottom:8px"><input id="chTok" placeholder="Access token" autocomplete="off" spellcheck="false" style="width:100%">'
     +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">New customer messages to your WhatsApp Business number show up in your briefing. Nothing is sent without you.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect WhatsApp</button></div>';
-  else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['groupme','zalo','whatsapp'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
+  else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['whatsapp_qr','groupme','zalo'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
     +'<div class="ibtns one" style="margin-top:14px"><button id="chClose">Close</button></div>';
   return h+'</div></div>';
 }
@@ -666,7 +687,7 @@ document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
 /* ======================= events ======================= */
-document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='chSheet'){CHATCONN=null;render()}});
+document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='chSheet'){if(WAQR&&WAQR.status!=='connected'){const w=WAQR;api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{})}waStop();WAQR=null;CHATCONN=null;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
 document.addEventListener('input',e=>{if(e.target.id==='cfIn')$('#cfYes').disabled=e.target.value.trim().toUpperCase()!=='DELETE'});
 document.addEventListener('change',e=>{
@@ -711,6 +732,9 @@ document.addEventListener('click',e=>{
     api('/disconnect',{id:c.id}).then(()=>{for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==c.label);save();return loadState()}).then(()=>flash(c.label+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
   if(b.id==='addChat'){CHATCONN='pick';return render()}
   if(d.chapp){CHATCONN=d.chapp;render();setTimeout(()=>$('#chTok')?.focus(),50);return}
+  if(b.id==='waStart'){b.disabled=true;b.textContent='Starting…';waLoadLib().catch(()=>{}).then(()=>api('/chats/wa/start',{})).then(r=>{WAQR={id:r.id,source:r.source,status:'pending',qr:null,t0:Date.now()};waPaint();waStop();WAQR_T=setInterval(waPoll,2000);waPoll()}).catch(e=>{b.disabled=false;b.textContent='I understand, show the code';const m=$('#chErr');if(m){m.textContent=errText(e);m.hidden=false}});return}
+  if(b.id==='waCancel'){const w=WAQR;waStop();WAQR=null;CHATCONN='pick';render();if(w&&w.status!=='connected')api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{});return}
+  if(b.id==='waDone'){waStop();WAQR=null;CHATCONN=null;render();loadState();return flash('✓ WhatsApp connected. Your next briefing will include your chats.')}
   if(b.id==='chBack'){CHATCONN='pick';return render()}
   if(b.id==='chClose'){CHATCONN=null;return render()}
   if(b.id==='chGo'){const app=CHATCONN,tok=($('#chTok').value||'').trim(),pid=($('#chPid')?.value||'').trim(),nm=APPS[app].name,label=b.textContent;if(!tok||(app==='whatsapp'&&!pid))return;b.disabled=true;b.textContent='Connecting…';
