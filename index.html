@@ -445,7 +445,9 @@ async function connectEmail(btn){
     flash('✓ '+r.mailbox.email+' is connected'+(r.messages?' ('+r.messages+' recent emails read)':'')+'. Add another, or continue.');
     if(MB.length===1)api('/discover',{}).then(o=>{if(o&&!S.owner&&o.firstName)S.owner=o.firstName;
       S.suggest=(o&&Array.isArray(o.businesses)?o.businesses:[]).filter(x=>x&&x.name&&!S.businesses.some(b=>b.key.toLowerCase()===x.name.toLowerCase())).slice(0,8);save()}).catch(()=>{});
-  }catch(e){btn.disabled=false;btn.textContent='Connect';if(e.code==='server_unreachable'){S.conn={...C,adv:true};save();render()}flash(errText(e))}
+  }catch(e){btn.disabled=false;btn.textContent='Connect';
+    if(e.code==='server_unreachable'&&C.det&&C.det.provider!=='custom')e={code:'auth_failed'};
+    if(e.code==='server_unreachable'){S.conn={...C,adv:true};save();render()}flash(errText(e))}
 }
 async function lookup(btn,pre){
   const name=pre?pre.name:$('#bizName').value.trim(),city=pre?(pre.city||''):$('#bizCity').value.trim();
