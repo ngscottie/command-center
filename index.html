@@ -165,7 +165,8 @@ async function api(path,body){
   if(!r.ok)throw {code:j.error,message:j.error,detail:j.detail,provider:j.provider};
   return j;
 }
-async function ensureAccount(){if(TOKEN)return;const a=await api('/account',{owner:S.owner,partner:S.partner});TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}
+let ACC_P=null;
+async function ensureAccount(){if(TOKEN)return;if(!ACC_P)ACC_P=api('/account',{owner:S.owner,partner:S.partner}).then(a=>{TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}).finally(()=>{ACC_P=null});return ACC_P}
 let MB=[];/* connected inboxes from the server */
 let OAUTH={google:false,microsoft:false};
 const sendFrom=()=>MB[0]?.email||'your email';
