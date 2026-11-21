@@ -166,6 +166,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 .a .pt{display:block;font-weight:800;font-size:15.5px;color:var(--ink)}
 .a .when{display:inline-block;margin:3px 6px 2px 0;padding:0 8px;border-radius:99px;background:var(--blush);color:var(--red);font-weight:700;font-size:12.5px;line-height:20px}
 .a .ptx{display:block;font-size:14.5px}.a ul.pts small{display:block;margin-top:2px}
+.tag.chat{background:var(--okbg);color:var(--ok)}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -228,7 +229,7 @@ async function api(path,body){
 }
 let ACC_P=null,DISC_BUSY=false;
 async function ensureAccount(){if(TOKEN)return;if(!ACC_P)ACC_P=api('/account',{owner:S.owner,partner:S.partner}).then(a=>{TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}).finally(()=>{ACC_P=null});return ACC_P}
-let MB=[],LAST_CHECK=null;/* connected inboxes from the server */
+let MB=[],CH=[],LAST_CHECK=null;/* connected inboxes from the server */
 let OAUTH={google:false,microsoft:false};
 const sendFrom=()=>MB[0]?.email||'your email';
 let SEED={preparedAt:null,items:[],waiting:[],good:[],stats:{}};
@@ -267,7 +268,7 @@ function renderBlocks(){
 function card(it,n){
   const done=S.done[it.id],open=S.open[it.id];
   let h='<article class="card '+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
-   +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
+   +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.chat?'<span class="tag chat">'+esc((APPS[it.app]?.name||'Chat')+' · '+it.chat)+'</span>':'')+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
    +(it.urg>=3&&!done&&it.cat!=='opp'?'<span class="tag">Top priority</span>':'')+(done?'<span class="tag ok">'+esc(done)+'</span>':'')+'</div>'
    +'<div class="title">'+esc(mask(it.title))+'</div>';
   if(done)return h+'</div></article>';
@@ -300,7 +301,12 @@ function ledger(all){
    +'<h3 style="margin-top:20px">Your inboxes <span>'+MB.length+'</span></h3><div class="ledger">'
    +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
      +('<button class="ledit" data-delmb="'+esc(m.id)+'" aria-label="Remove '+esc(m.email)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>').join('')
-   +'<button class="ladd" id="addInbox">+ Add an inbox</button></div></aside>';
+   +'<button class="ladd" id="addInbox">+ Add an inbox</button></div>'
+   +'<h3 style="margin-top:20px">Your group chats <span>'+CH.length+'</span></h3><div class="ledger">'
+   +CH.map(c=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(APPS[c.app]?.name||c.app)+(c.name?' · '+esc(c.name):'')+'</span><small>'+(c.status==='ok'?'✓ Connected'+(c.last_sync?' · checked '+new Date(c.last_sync).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
+     +'<button class="ledit" data-delchat="'+esc(c.id)+'" aria-label="Remove '+esc(APPS[c.app]?.name||c.app)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button></div>').join('')
+   +'<button class="ladd" id="addChat">+ Connect a group chat</button></div>'
+   +'<p class="note">Messages from your group chats are read with your email and show up in the same briefing.</p></aside>';
 }
 
 /* ======================= home ======================= */
@@ -356,9 +362,22 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let EDIT=null,CONFIRM=null;
+let EDIT=null,CONFIRM=null,CHATCONN=null;
+const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp',live:false,note:'WhatsApp Business numbers are coming next. Personal WhatsApp has no official connection.'},demo:{name:'Zalo (sample)',live:false}};
+function chatSheet(){
+  const a=CHATCONN;
+  let h='<div class="isheet" id="chSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="ibox"><b id="chTitle" style="font-size:18px">Connect a group chat</b>';
+  if(a==='groupme')h+='<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>Open <a href="https://dev.groupme.com/" target="_blank" rel="noopener">dev.groupme.com</a> and sign in with your GroupMe account</span></li><li><i>2</i><span>Tap <b>Access Token</b> at the top right</span></li><li><i>3</i><span>Copy it and paste it here</span></li></ol>'
+    +'<input id="chTok" placeholder="Paste your GroupMe access token" autocomplete="off" spellcheck="false" style="width:100%">'
+    +'<p class="sub" style="font-size:13px;margin:8px 0 0">We read your groups and direct messages from the last few days. Nothing is posted to your chats.</p>'
+    +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect GroupMe</button></div>';
+  else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['groupme','zalo','whatsapp'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
+    +'<div class="ibtns one" style="margin-top:14px"><button id="chClose">Close</button></div>';
+  return h+'</div></div>';
+}
 function confirmSheet(c){
   const what=c.kind==='biz'?'<p class="sub">This removes <b>'+esc(c.label)+'</b> from your businesses. Its emails will be filed under your other businesses or Personal from the next briefing on.</p>'
+    :c.kind==='chat'?'<p class="sub">We will stop reading <b>'+esc(c.label)+'</b> and permanently delete its saved connection and the chat messages we kept. You can connect it again later.</p>'
     :'<p class="sub">We will stop reading <b>'+esc(c.label)+'</b> and permanently delete its saved password or sign-in. You can connect it again later.</p>';
   return '<div class="isheet" id="cfSheet" role="alertdialog" aria-modal="true" aria-labelledby="cfTitle"><div class="ibox"><b id="cfTitle" style="font-size:18px">Remove '+esc(c.label)+'?</b>'+what
    +'<label class="sub" for="cfIn" style="display:block;margin-top:6px">Type <b>DELETE</b> to confirm</label><input id="cfIn" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:100%;margin-top:6px">'
@@ -440,8 +459,8 @@ function render(){
   $('#setupBtn').classList.toggle('on',route==='setup');
   $('#ownerName').textContent=S.owner?S.owner+'’s':'Your';document.title=(S.owner?S.owner+'’s ':'')+'Command Center';
   $('#app').innerHTML=route==='setup'?setup():home();
-  const md=$('#modal'),want=CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:(EDIT&&route!=='setup'?EDIT:'');
-  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=CONFIRM?confirmSheet(CONFIRM):'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
+  const md=$('#modal'),want=CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:CHATCONN?'ch:'+CHATCONN:(EDIT&&route!=='setup'?EDIT:'');
+  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=CONFIRM?confirmSheet(CONFIRM):CHATCONN?chatSheet():'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
   md.dataset.k=want;
 }
 function flash(t){const s=$('#status');if(s){s.textContent=t;s.hidden=!t}else if(t){toast(esc(t));setTimeout(()=>toast(''),5000)}}
@@ -510,7 +529,7 @@ async function useBriefing(nb,store){
 /* ======================= setup actions ======================= */
 async function loadState(){
   if(!TOKEN)return;
-  try{const r=await api('/state',{});MB=r.mailboxes||[];
+  try{const r=await api('/state',{});MB=r.mailboxes||[];CH=r.chats||[];
     const st=r.account?.settings||{};if(st.app)S={...S,...st.app};
     if(r.account?.owner)S.owner=r.account.owner;if(r.account?.partner!==undefined)S.partner=r.account.partner||S.partner;
     if(r.briefing&&r.briefing.preparedAt!==B.preparedAt)B=r.briefing;
@@ -602,7 +621,7 @@ function askAnswer(a,ti){
       +(S.pres?'<div class="why" style="white-space:pre-wrap;-webkit-line-clamp:unset">'+esc(mask(d))+'</div>':'<textarea data-askdraft="'+k+'" aria-label="Reply to '+esc(r.to)+'" style="min-height:120px">'+esc(d)+'</textarea>')
       +'<div class="row"><button class="primary small" data-asksend="'+k+'"'+(S.pres?' disabled':'')+'>Approve & send</button></div>')+'</div>';
   }
-  return h+'<div class="src">From '+(a.read||0)+' conversations'+(a.scope?' in '+esc(a.scope):'')+'.</div></div>';
+  return h+'<div class="src">From '+(a.read||0)+' emails'+(a.chats?' and '+a.chats+' chat messages':'')+(a.scope?' in '+esc(a.scope):'')+'.</div></div>';
 }
 async function ask(q){
   q=String(q||'').trim();if(!q||ASK.busy)return;
@@ -612,7 +631,7 @@ async function ask(q){
     const hist=ASK.turns.slice(0,-1).slice(-4).map(t=>({q:t.q,answer:t.a?.answer,replies:(t.a?.replies||[]).map(r=>({id:r.id,ref:r.ref,to:r.to,draft:ASK.drafts[ASK.turns.indexOf(t)+':'+r.id]??r.draft}))}));
     const mb=MB.find(m=>m.email===ASK.inbox);
     const out=await api('/ask',{question:q,mailbox:mb?.id,mailboxEmail:ASK.inbox||'',history:hist,tz:Intl.DateTimeFormat().resolvedOptions().timeZone});
-    turn.a={answer:out.answer||'Nothing stands out.',points:(out.points||[]).slice(0,8),replies:out.replies||[],read:out.read,scope:ASK.inbox||'all inboxes'};
+    turn.a={answer:out.answer||'Nothing stands out.',points:(out.points||[]).slice(0,8),replies:out.replies||[],read:out.read,chats:out.chats,scope:ASK.inbox||'all inboxes'};
   }catch(e){turn.err=errText(e)}
   clearTimeout(t);ASK.busy=false;askRender();setTimeout(()=>$('#askIn')?.focus(),50);
 }
@@ -642,7 +661,7 @@ document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
 /* ======================= events ======================= */
-document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}});
+document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='chSheet'){CHATCONN=null;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
 document.addEventListener('input',e=>{if(e.target.id==='cfIn')$('#cfYes').disabled=e.target.value.trim().toUpperCase()!=='DELETE'});
 document.addEventListener('change',e=>{
@@ -681,9 +700,18 @@ document.addEventListener('click',e=>{
   if(d.delmb){const mb=MB.find(x=>x.id===d.delmb);CONFIRM={kind:'mb',id:d.delmb,label:mb?mb.email:'this inbox'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
   if(b.id==='cfNo'){CONFIRM=null;return render()}
   if(b.id==='cfYes'){if(($('#cfIn').value||'').trim().toUpperCase()!=='DELETE')return;const c=CONFIRM;CONFIRM=null;
+    if(c.kind==='chat'){render();api('/chats/disconnect',{id:c.id}).then(loadState).then(()=>flash(c.label+' removed.')).catch(e=>{render();flash(errText(e))});return}
     if(c.kind==='biz'){S.businesses=S.businesses.filter(x=>x.key!==c.id);delete S.profiles[c.id];if(S.biz===c.id)S.biz=null;save();render();return flash(c.label+' removed.')}
     render();flash('Removing '+c.label+'…');
     api('/disconnect',{id:c.id}).then(()=>{for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==c.label);save();return loadState()}).then(()=>flash(c.label+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
+  if(b.id==='addChat'){CHATCONN='pick';return render()}
+  if(d.chapp){CHATCONN=d.chapp;render();setTimeout(()=>$('#chTok')?.focus(),50);return}
+  if(b.id==='chBack'){CHATCONN='pick';return render()}
+  if(b.id==='chClose'){CHATCONN=null;return render()}
+  if(b.id==='chGo'){const tok=($('#chTok').value||'').trim();if(!tok)return;b.disabled=true;b.textContent='Connecting…';
+    api('/chats/connect',{app:'groupme',token:tok}).then(r=>{CHATCONN=null;return loadState().then(()=>flash('✓ GroupMe connected'+(r.messages?': '+r.messages+' recent messages read.':'.')+' Your next briefing will include it.'))})
+      .catch(e=>{b.disabled=false;b.textContent='Connect GroupMe';flash(e.code==='auth_failed'?'GroupMe didn’t accept that token. Copy it again from dev.groupme.com.':errText(e))});return}
+  if(d.delchat){const c=CH.find(x=>x.id===d.delchat);CONFIRM={kind:'chat',id:d.delchat,label:c?(APPS[c.app]?.name||c.app)+(c.name?' · '+c.name:''):'this chat'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
   if(b.id==='addInbox'){route='setup';S.setupStep=1;EDIT=null;save();scrollTo(0,0);return render()}
   if(d.rmmb){const mb=MB.find(x=>x.id===d.rmmb);CONFIRM={kind:'mb',id:d.rmmb,label:mb?mb.email:'this inbox'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return;api('/disconnect',{id:d.rmmb}).then(loadState);return}
   if(b.id==='lookup')return lookup(b);
