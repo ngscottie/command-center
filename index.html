@@ -168,6 +168,13 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 .a .ptx{display:block;font-size:14.5px}.a ul.pts small{display:block;margin-top:2px}
 .tag.chat{background:var(--okbg);color:var(--ok)}
 #chSheet .lrow small{white-space:normal}
+body{overscroll-behavior-y:contain}
+#ptr{position:fixed;top:10px;left:50%;transform:translate(-50%,-80px);z-index:25;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.12);border-radius:99px;padding:8px 16px;font-size:14px;font-weight:700;max-width:calc(100% - 32px);text-align:center;opacity:0;transition:opacity .15s,transform .2s;pointer-events:none;display:flex;gap:8px;align-items:center}
+#ptr.show{opacity:1;transform:translate(-50%,0)}
+.spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--red);border-radius:50%;animation:sp 0.8s linear infinite;flex:none}@keyframes sp{to{transform:rotate(360deg)}}
+.urgent{border:2px solid var(--red);background:var(--blush);border-radius:14px;padding:12px 14px;margin:0 0 16px}
+.urgent .uhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.urgent .uhead b{color:var(--red);font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.urgent .uitem{background:var(--card);border-radius:10px;padding:10px 12px;margin-top:8px}.urgent .uitem .title{font-weight:700}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -205,6 +212,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
+<div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
 <div id="toast"></div>
@@ -324,6 +332,7 @@ function home(){
    +'<div class="stat money"><small>Your time saved ('+hours.toFixed(1)+' h)</small><b>'+mask(money(hours*S.hourValue))+'</b></div></div>'
    +'<div class="row jump"><button class="small" id="jumpBiz">'+(S.biz?esc(S.biz)+' \u00b7 change':'Your '+S.businesses.length+' businesses \u2193')+'</button>'+(S.biz?'<button class="link" data-biz="">Show all</button>':'')+'</div>';
   let main='<div class="status" id="status" hidden></div>';
+  if(URGENT&&URGENT.items.length)main+='<section class="urgent" aria-label="Needs you now"><div class="uhead"><b>Needs you now</b><button class="link" id="urgentOk">Got it</button></div>'+URGENT.items.map(u=>'<div class="uitem"><span class="tag b">'+esc(u.biz||'')+'</span><div class="title">'+esc(mask(u.title))+'</div>'+(u.why?'<p class="why">'+esc(mask(u.why))+'</p>':'')+'</div>').join('')+'<p class="sub" style="font-size:12.5px;margin:6px 0 0">Checked '+new Date(URGENT.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'. Everything else will be in your next briefing.</p></section>';
   const list=k=>scoped.filter(i=>i.cat===k);
   const later=(k,label)=>{const n=list(k).filter(i=>!S.done[i.id]).length;return n?'<div class="locked"><b>'+n+' '+label+'</b>Ready at '+hourLabel(k==='prio'?S.blocks.opp:S.blocks.prio)+'.</div>':''};
   if(blk==='eve'){
@@ -363,7 +372,7 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
+let URGENT=null,EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
 const ES={};
 addEventListener('message',e=>{try{if(!/(^|\.)facebook\.com$/.test(new URL(e.origin).hostname))return;const d=typeof e.data==='string'?JSON.parse(e.data):e.data;if(d&&d.type==='WA_EMBEDDED_SIGNUP'){if(/^FINISH/.test(d.event||'')){ES.waba=d.data?.waba_id;ES.pid=d.data?.phone_number_id}else if(d.event==='CANCEL')ES.cancel=true}}catch(_){}});
 function fbSdk(appId){return window.FB?Promise.resolve():new Promise((ok,no)=>{window.fbAsyncInit=()=>{FB.init({appId,autoLogAppEvents:true,xfbml:false,version:'v23.0'});ok()};const s=document.createElement('script');s.src='https://connect.facebook.net/en_US/sdk.js';s.async=true;s.crossOrigin='anonymous';s.onerror=no;document.head.appendChild(s)})}
@@ -713,6 +722,25 @@ document.addEventListener('submit',e=>{if(e.target.id==='askForm'){e.preventDefa
 document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK.drafts[k]=e.target.value});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
+/* ======================= pull down to check ======================= */
+let QUICK_BUSY=false;
+function pendingCount(){return (B.items||[]).filter(i=>!S.done[i.id]&&!S.later[i.id]).length}
+async function quickCheck(){
+  if(QUICK_BUSY||!TOKEN)return;QUICK_BUSY=true;ptrShow('Checking for anything new…',true);
+  try{
+    const r=await api('/quick',{});await loadState();
+    if(r.urgent&&r.urgent.length){URGENT={items:r.urgent,at:Date.now()};render();scrollTo({top:0,behavior:'smooth'});ptrShow(r.urgent.length+' thing'+(r.urgent.length===1?' needs':'s need')+' you now',false,2500)}
+    else{const p=pendingCount();ptrShow(r.fresh?'Nothing urgent in '+r.fresh+' new message'+(r.fresh===1?'':'s')+'.'+(p?' '+p+' item'+(p===1?'':'s')+' still waiting on your decision.':''):'✓ You’re up to date.'+(p?' '+p+' item'+(p===1?'':'s')+' still waiting on your decision.':''),false,3500)}
+  }catch(e){ptrShow(errText(e),false,4000)}
+  QUICK_BUSY=false;
+}
+let PTR_T;function ptrShow(t,spin,hideAfter){const el=$('#ptr');el.innerHTML=(spin?'<span class="spin" aria-hidden="true"></span>':'')+esc(t);el.classList.add('show');el.style.transform='';clearTimeout(PTR_T);if(hideAfter)PTR_T=setTimeout(()=>el.classList.remove('show'),hideAfter)}
+(()=>{let y0=null,dy=0;const el=$('#ptr'),busy=()=>route!=='home'||ASK.open||EDIT||CONFIRM||CHATCONN||document.querySelector('.isheet:not([hidden]),.welcome:not([hidden])');
+  addEventListener('touchstart',e=>{y0=(scrollY<=0&&!busy()&&!QUICK_BUSY)?e.touches[0].clientY:null;dy=0},{passive:true});
+  addEventListener('touchmove',e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy<=0){el.classList.remove('show');return}const d=Math.min(dy,110);el.classList.add('show');el.style.transform='translate(-50%,'+(d-60)+'px)';el.textContent=dy>80?'Release to check':'Pull down to check'},{passive:true});
+  addEventListener('touchend',()=>{if(y0===null)return;y0=null;if(dy>80)quickCheck();else{el.classList.remove('show');el.style.transform=''}});
+})();
+
 /* ======================= events ======================= */
 document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='chSheet'){if(WAQR&&WAQR.status!=='connected'){const w=WAQR;api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{})}waStop();WAQR=null;CHATCONN=null;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
@@ -757,6 +785,7 @@ document.addEventListener('click',e=>{
     if(c.kind==='biz'){S.businesses=S.businesses.filter(x=>x.key!==c.id);delete S.profiles[c.id];if(S.biz===c.id)S.biz=null;save();render();return flash(c.label+' removed.')}
     render();flash('Removing '+c.label+'…');
     api('/disconnect',{id:c.id}).then(()=>{for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==c.label);save();return loadState()}).then(()=>flash(c.label+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
+  if(b.id==='urgentOk'){URGENT=null;return render()}
   if(b.id==='addChat'){CHATCONN='pick';return render()}
   if(d.chapp){CHATCONN=d.chapp;render();setTimeout(()=>$('#chTok')?.focus(),50);return}
   if(b.id==='waStart'){b.disabled=true;b.textContent='Starting…';waLoadLib().catch(()=>{}).then(()=>api('/chats/wa/start',{})).then(r=>{WAQR={id:r.id,source:r.source,status:'pending',qr:null,t0:Date.now()};waPaint();waStop();WAQR_T=setInterval(waPoll,2000);waPoll()}).catch(e=>{b.disabled=false;b.textContent='I understand, show the code';const m=$('#chErr');if(m){m.textContent=errText(e);m.hidden=false}});return}
