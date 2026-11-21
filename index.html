@@ -289,12 +289,12 @@ const fmtTime=d=>new Date(d).toLocaleString([], {weekday:'short',month:'short',d
 function ledger(all){
   const biz=S.businesses.filter(b=>!(S.pres&&b.key==='Personal'));
   const rows=biz.map(b=>{const its=all.filter(i=>i.biz===b.key&&!S.done[i.id]);const opp=its.filter(i=>i.cat==='opp').reduce((a,i)=>a+(i.value||0),0);const top=its.filter(i=>i.urg>=3&&i.cat!=='opp').length;
-    return '<div class="lwrap biz"><button class="lrow '+(S.biz===b.key?'on':'')+'" data-biz="'+esc(b.key)+'"><span>'+esc(b.key)+'</span><small>'+esc([b.what,b.runBy&&b.runBy!==S.owner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt '+(top?'hot':'')+'"><b>'+(its.length||'✓')+'</b>'+(opp?'<i>'+mask(money(opp))+'</i>':(its.length?'open':'clear'))+'</span></button><button class="ledit" data-editbiz="'+esc(b.key)+'" aria-label="Edit '+esc(b.key)+'" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+(b.key==='Personal'?'<span></span>':DELBIZ===b.key?'<button class="ldel" data-delbiz="'+esc(b.key)+'" aria-label="Confirm remove '+esc(b.key)+'">Remove?</button>':'<button class="ledit" data-delbiz="'+esc(b.key)+'" aria-label="Remove '+esc(b.key)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>'}).join('');
+    return '<div class="lwrap biz"><button class="lrow '+(S.biz===b.key?'on':'')+'" data-biz="'+esc(b.key)+'"><span>'+esc(b.key)+'</span><small>'+esc([b.what,b.runBy&&b.runBy!==S.owner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt '+(top?'hot':'')+'"><b>'+(its.length||'✓')+'</b>'+(opp?'<i>'+mask(money(opp))+'</i>':(its.length?'open':'clear'))+'</span></button><button class="ledit" data-editbiz="'+esc(b.key)+'" aria-label="Edit '+esc(b.key)+'" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+(b.key==='Personal'?'<span></span>':'<button class="ledit" data-delbiz="'+esc(b.key)+'" aria-label="Remove '+esc(b.key)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>'}).join('');
   return '<aside class="side" id="bizlist"><h3>Your businesses <span>'+biz.length+'</span></h3><div class="ledger"><button class="lrow '+(!S.biz?'on':'')+'" data-biz=""><span>All businesses</span><small>'+all.filter(i=>!S.done[i.id]).length+' open across everything</small><span class="cnt"><b>'+all.filter(i=>!S.done[i.id]).length+'</b>open</span></button>'+rows+'<button class="ladd" data-editbiz="__new">+ Add a business</button></div>'
    +'<p class="note">Tap a business to see only its items. Tap the pencil to change it.</p>'
    +'<h3 style="margin-top:20px">Your inboxes <span>'+MB.length+'</span></h3><div class="ledger">'
    +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
-     +(DELMB===m.id?'<button class="ldel on" data-delmb="'+esc(m.id)+'" aria-label="Confirm remove '+esc(m.email)+'">Remove?</button>':'<button class="ledit" data-delmb="'+esc(m.id)+'" aria-label="Remove '+esc(m.email)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>').join('')
+     +('<button class="ledit" data-delmb="'+esc(m.id)+'" aria-label="Remove '+esc(m.email)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>').join('')
    +'<button class="ladd" id="addInbox">+ Add an inbox</button></div></aside>';
 }
 
@@ -351,7 +351,14 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let EDIT=null,DELMB=null,DELMB_T=null,DELBIZ=null,DELBIZ_T=null;
+let EDIT=null,CONFIRM=null;
+function confirmSheet(c){
+  const what=c.kind==='biz'?'<p class="sub">This removes <b>'+esc(c.label)+'</b> from your businesses. Its emails will be filed under your other businesses or Personal from the next briefing on.</p>'
+    :'<p class="sub">We will stop reading <b>'+esc(c.label)+'</b> and permanently delete its saved password or sign-in. You can connect it again later.</p>';
+  return '<div class="isheet" id="cfSheet" role="alertdialog" aria-modal="true" aria-labelledby="cfTitle"><div class="ibox"><b id="cfTitle" style="font-size:18px">Remove '+esc(c.label)+'?</b>'+what
+   +'<label class="sub" for="cfIn" style="display:block;margin-top:6px">Type <b>DELETE</b> to confirm</label><input id="cfIn" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:100%;margin-top:6px">'
+   +'<div class="ibtns" style="margin-top:14px"><button id="cfNo">Keep it</button><button class="primary" id="cfYes" disabled>Remove</button></div></div></div>';
+}
 function bizEditForm(b){
   const isNew=!b;b=b||{key:'',city:'',type:'salon',addr:[],runBy:S.owner||'Me'};
   const opt=Object.entries(TYPES).map(([k,v])=>'<option value="'+k+'"'+(k===b.type?' selected':'')+'>'+v.label+'</option>').join('');
@@ -428,8 +435,8 @@ function render(){
   $('#setupBtn').classList.toggle('on',route==='setup');
   $('#ownerName').textContent=S.owner?S.owner+'’s':'Your';document.title=(S.owner?S.owner+'’s ':'')+'Command Center';
   $('#app').innerHTML=route==='setup'?setup():home();
-  const md=$('#modal'),want=EDIT&&route!=='setup'?EDIT:'';
-  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML='<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
+  const md=$('#modal'),want=CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:(EDIT&&route!=='setup'?EDIT:'');
+  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=CONFIRM?confirmSheet(CONFIRM):'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
   md.dataset.k=want;
 }
 function flash(t){const s=$('#status');if(s){s.textContent=t;s.hidden=!t}else if(t){toast(esc(t));setTimeout(()=>toast(''),5000)}}
@@ -630,8 +637,9 @@ document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
 /* ======================= events ======================= */
-document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&EDIT&&$('#bizSheet')){EDIT=null;render()}});
+document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
+document.addEventListener('input',e=>{if(e.target.id==='cfIn')$('#cfYes').disabled=e.target.value.trim().toUpperCase()!=='DELETE'});
 document.addEventListener('change',e=>{
   if(e.target.id==='bizType'){const c=$('#bizCustom');c.hidden=e.target.value!=='other';if(!c.hidden)c.focus()}
   if(e.target.id==='eType'){const c=$('#eCustomL');c.hidden=e.target.value!=='other';if(!c.hidden)$('#eCustom').focus()}
@@ -664,20 +672,21 @@ document.addEventListener('click',e=>{
   if(b.id==='cConnect')return connectEmail(b);
   if(b.id==='cReset'){S.conn={};save();return render()}
   if(b.id==='gSignIn')return oauthStart(b,'google');
-  if(d.delbiz){if(DELBIZ!==d.delbiz){DELBIZ=d.delbiz;clearTimeout(DELBIZ_T);DELBIZ_T=setTimeout(()=>{DELBIZ=null;render()},5000);return render()}
-    const k=d.delbiz;DELBIZ=null;clearTimeout(DELBIZ_T);S.businesses=S.businesses.filter(x=>x.key!==k);delete S.profiles[k];if(S.biz===k)S.biz=null;save();render();return flash(k+' removed.')}
-  if(d.delmb){if(DELMB!==d.delmb){DELMB=d.delmb;clearTimeout(DELMB_T);DELMB_T=setTimeout(()=>{DELMB=null;render()},5000);return render()}
-    const mb=MB.find(x=>x.id===d.delmb);DELMB=null;clearTimeout(DELMB_T);b.disabled=true;b.textContent='Removing…';
-    api('/disconnect',{id:d.delmb}).then(()=>{if(mb)for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==mb.email);save();return loadState()}).then(()=>flash((mb?mb.email:'Inbox')+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
+  if(d.delbiz){CONFIRM={kind:'biz',id:d.delbiz,label:d.delbiz};EDIT=null;render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
+  if(d.delmb){const mb=MB.find(x=>x.id===d.delmb);CONFIRM={kind:'mb',id:d.delmb,label:mb?mb.email:'this inbox'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
+  if(b.id==='cfNo'){CONFIRM=null;return render()}
+  if(b.id==='cfYes'){if(($('#cfIn').value||'').trim().toUpperCase()!=='DELETE')return;const c=CONFIRM;CONFIRM=null;
+    if(c.kind==='biz'){S.businesses=S.businesses.filter(x=>x.key!==c.id);delete S.profiles[c.id];if(S.biz===c.id)S.biz=null;save();render();return flash(c.label+' removed.')}
+    render();flash('Removing '+c.label+'…');
+    api('/disconnect',{id:c.id}).then(()=>{for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==c.label);save();return loadState()}).then(()=>flash(c.label+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
   if(b.id==='addInbox'){route='setup';S.setupStep=1;EDIT=null;save();scrollTo(0,0);return render()}
-  if(d.rmmb){api('/disconnect',{id:d.rmmb}).then(loadState);return}
+  if(d.rmmb){const mb=MB.find(x=>x.id===d.rmmb);CONFIRM={kind:'mb',id:d.rmmb,label:mb?mb.email:'this inbox'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return;api('/disconnect',{id:d.rmmb}).then(loadState);return}
   if(b.id==='lookup')return lookup(b);
   if(d.addsug!==undefined){const x=S.suggest[+d.addsug];if(x)lookup(b,x);return}
   if(d.step!==undefined){S.setupStep=+d.step;EDIT=null;save();scrollTo(0,0);return render()}
   if(d.editbiz){EDIT=EDIT===d.editbiz?null:d.editbiz;render();setTimeout(()=>$('#eName')?.focus(),0);return}
   if(b.id==='eCancel'){EDIT=null;return render()}
-  if(b.id==='eRemove'){if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Tap again to remove';b.style.color='var(--red)';return}
-    const k=EDIT;S.businesses=S.businesses.filter(x=>x.key!==k);delete S.profiles[k];if(S.biz===k)S.biz=null;EDIT=null;save();render();return flash(k+' removed.')}
+  if(b.id==='eRemove'){CONFIRM={kind:'biz',id:EDIT,label:EDIT};EDIT=null;render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
   if(b.id==='eSave'){let bz=S.businesses.find(x=>x.key===EDIT);
     if(EDIT==='__new'){const nm=$('#eName').value.trim();if(!nm)return flash('The business needs a name.');if(S.businesses.some(x=>x.key===nm))return flash('You already have a business with that name.');
       if($('#eType').value==='other'&&!($('#eCustom')?.value||'').trim())return flash('Type what kind of business it is.');
@@ -694,7 +703,7 @@ document.addEventListener('click',e=>{
     Object.assign(bz,{key:name,city:$('#eCity').value.trim(),type,opening:$('#eOpen').checked,runBy:$('#eRun')?.value||bz.runBy,addr:[...document.querySelectorAll('[data-eaddr]')].filter(x=>x.checked).map(x=>x.dataset.eaddr)});
     if(name!==old){if(S.profiles[old]){S.profiles[name]={...S.profiles[old],name};delete S.profiles[old]}if(S.biz===old)S.biz=name;if(S.showProf===old)S.showProf=name;if(S.lastLookup?.name===old)S.lastLookup=null}
     const wasNew=old==='__new';EDIT=null;save();if(S.setupDone)pushSettings();render();return flash('✓ '+name+(wasNew?' added.':' updated.')+' Your next briefing will use it.')}
-  if(d.rmbiz){S.businesses=S.businesses.filter(x=>x.key!==d.rmbiz);delete S.profiles[d.rmbiz];if(S.lastLookup?.name===d.rmbiz)S.lastLookup=null;save();return render()}
+  if(d.rmbiz){CONFIRM={kind:'biz',id:d.rmbiz,label:d.rmbiz};render();setTimeout(()=>$('#cfIn')?.focus(),50);return;S.businesses=S.businesses.filter(x=>x.key!==d.rmbiz);delete S.profiles[d.rmbiz];if(S.lastLookup?.name===d.rmbiz)S.lastLookup=null;save();return render()}
   if(d.showprof){S.showProf=S.showProf===d.showprof?null:d.showprof;S.lastLookup=null;save();return render()}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='cEmail'||e.target.id==='cPass')){e.preventDefault();($('#cConnect')||$('#cNext'))?.click()}});
