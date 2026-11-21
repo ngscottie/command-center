@@ -160,6 +160,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 #bizSheet .editbiz{border:0;margin:0;padding:0;box-shadow:none;background:transparent}
 .ldel{min-height:0;border:0;border-radius:0;background:var(--red);color:#fff;padding:0 6px;font-size:12px;font-weight:800}
 .lwrap:has(.ldel){grid-template-columns:minmax(0,1fr) 84px}
+.lwrap.biz{grid-template-columns:minmax(0,1fr) 40px 40px}.lwrap.biz:has(.ldel){grid-template-columns:minmax(0,1fr) 40px 84px}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -288,7 +289,7 @@ const fmtTime=d=>new Date(d).toLocaleString([], {weekday:'short',month:'short',d
 function ledger(all){
   const biz=S.businesses.filter(b=>!(S.pres&&b.key==='Personal'));
   const rows=biz.map(b=>{const its=all.filter(i=>i.biz===b.key&&!S.done[i.id]);const opp=its.filter(i=>i.cat==='opp').reduce((a,i)=>a+(i.value||0),0);const top=its.filter(i=>i.urg>=3&&i.cat!=='opp').length;
-    return '<div class="lwrap"><button class="lrow '+(S.biz===b.key?'on':'')+'" data-biz="'+esc(b.key)+'"><span>'+esc(b.key)+'</span><small>'+esc([b.what,b.runBy&&b.runBy!==S.owner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt '+(top?'hot':'')+'"><b>'+(its.length||'✓')+'</b>'+(opp?'<i>'+mask(money(opp))+'</i>':(its.length?'open':'clear'))+'</span></button><button class="ledit" data-editbiz="'+esc(b.key)+'" aria-label="Edit '+esc(b.key)+'" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>'}).join('');
+    return '<div class="lwrap biz"><button class="lrow '+(S.biz===b.key?'on':'')+'" data-biz="'+esc(b.key)+'"><span>'+esc(b.key)+'</span><small>'+esc([b.what,b.runBy&&b.runBy!==S.owner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt '+(top?'hot':'')+'"><b>'+(its.length||'✓')+'</b>'+(opp?'<i>'+mask(money(opp))+'</i>':(its.length?'open':'clear'))+'</span></button><button class="ledit" data-editbiz="'+esc(b.key)+'" aria-label="Edit '+esc(b.key)+'" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+(b.key==='Personal'?'<span></span>':DELBIZ===b.key?'<button class="ldel" data-delbiz="'+esc(b.key)+'" aria-label="Confirm remove '+esc(b.key)+'">Remove?</button>':'<button class="ledit" data-delbiz="'+esc(b.key)+'" aria-label="Remove '+esc(b.key)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>'}).join('');
   return '<aside class="side" id="bizlist"><h3>Your businesses <span>'+biz.length+'</span></h3><div class="ledger"><button class="lrow '+(!S.biz?'on':'')+'" data-biz=""><span>All businesses</span><small>'+all.filter(i=>!S.done[i.id]).length+' open across everything</small><span class="cnt"><b>'+all.filter(i=>!S.done[i.id]).length+'</b>open</span></button>'+rows+'<button class="ladd" data-editbiz="__new">+ Add a business</button></div>'
    +'<p class="note">Tap a business to see only its items. Tap the pencil to change it.</p>'
    +'<h3 style="margin-top:20px">Your inboxes <span>'+MB.length+'</span></h3><div class="ledger">'
@@ -350,7 +351,7 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let EDIT=null,DELMB=null,DELMB_T=null;
+let EDIT=null,DELMB=null,DELMB_T=null,DELBIZ=null,DELBIZ_T=null;
 function bizEditForm(b){
   const isNew=!b;b=b||{key:'',city:'',type:'salon',addr:[],runBy:S.owner||'Me'};
   const opt=Object.entries(TYPES).map(([k,v])=>'<option value="'+k+'"'+(k===b.type?' selected':'')+'>'+v.label+'</option>').join('');
@@ -663,6 +664,8 @@ document.addEventListener('click',e=>{
   if(b.id==='cConnect')return connectEmail(b);
   if(b.id==='cReset'){S.conn={};save();return render()}
   if(b.id==='gSignIn')return oauthStart(b,'google');
+  if(d.delbiz){if(DELBIZ!==d.delbiz){DELBIZ=d.delbiz;clearTimeout(DELBIZ_T);DELBIZ_T=setTimeout(()=>{DELBIZ=null;render()},5000);return render()}
+    const k=d.delbiz;DELBIZ=null;clearTimeout(DELBIZ_T);S.businesses=S.businesses.filter(x=>x.key!==k);delete S.profiles[k];if(S.biz===k)S.biz=null;save();render();return flash(k+' removed.')}
   if(d.delmb){if(DELMB!==d.delmb){DELMB=d.delmb;clearTimeout(DELMB_T);DELMB_T=setTimeout(()=>{DELMB=null;render()},5000);return render()}
     const mb=MB.find(x=>x.id===d.delmb);DELMB=null;clearTimeout(DELMB_T);b.disabled=true;b.textContent='Removing…';
     api('/disconnect',{id:d.delmb}).then(()=>{if(mb)for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==mb.email);save();return loadState()}).then(()=>flash((mb?mb.email:'Inbox')+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
