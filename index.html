@@ -208,6 +208,9 @@ button.stat:active{transform:scale(.98)}
 
 .title.hasmsg{cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:4px}.title.hasmsg:hover{text-decoration-color:var(--red)}
 @media(max-width:959px){.layout>.side{order:-1}.jump{display:none!important}}
+.caret{display:inline-block;width:8px;height:16px;margin-left:2px;background:var(--red);vertical-align:-3px;animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.deeptag{font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.askbar .deepbtn{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -218,7 +221,7 @@ button.stat:active{transform:scale(.98)}
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
-<script src="vi.js?v=5"></script>
+<script src="vi.js?v=6"></script>
 <div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
@@ -242,6 +245,15 @@ async function api(path,body){
   const j=await r.json().catch(()=>({error:'server_error'}));
   if(!r.ok)throw {code:j.error,message:j.error,detail:j.detail,provider:j.provider};
   return j;
+}
+async function apiStream(path,body,onEv){
+  const r=await fetch(API+path,{method:'POST',headers:{'content-type':'application/json',...(TOKEN?{'x-cc-token':TOKEN}:{})},body:JSON.stringify(body||{})});
+  if(!r.ok||!r.body){const j=await r.json().catch(()=>({error:'server_error'}));throw {code:j.error,message:j.error,detail:j.detail}}
+  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',last=null;
+  for(;;){const {value,done}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;
+    while((i=buf.indexOf('\n\n'))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+2);if(!line.startsWith('data:'))continue;let ev;try{ev=JSON.parse(line.slice(5))}catch(_){continue}
+      if(ev.error)throw {code:ev.error,message:ev.error,detail:ev.detail};onEv(ev);if(ev.done)last=ev}}
+  return last;
 }
 let ACC_P=null,DISC_BUSY=false;
 async function ensureAccount(){if(TOKEN)return;if(!ACC_P)ACC_P=api('/account',{owner:S.owner,partner:S.partner}).then(a=>{TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}).finally(()=>{ACC_P=null});return ACC_P}
@@ -708,12 +720,13 @@ function askRender(){
    +'<div class="convo" id="convo">'+(ASK.turns.length?'':'<p class="sub">Pick an inbox, tap a question or type your own. Then tell me what to change: “make the reply shorter”, “what about Friday?”</p>')
    +ASK.turns.map((t,ti)=>'<div class="q">'+esc(t.q)+'</div>'+(t.a?askAnswer(t.a,ti):t.err?'<div class="a"><p>'+esc(t.err)+'</p></div>':'')).join('')
    +(ASK.busy?'<p class="thinking">'+esc(ASK.busy)+'</p>':'')+'</div>'
-   +'<form class="askbar" id="askForm"><input id="askIn" placeholder="'+(ASK.turns.length?'Change or ask more…':'Ask anything about '+(ASK.inbox||'all inboxes'))+'" aria-label="Your question" autocomplete="off"'+(ASK.busy?' disabled':'')+'><button class="primary" id="askGo"'+(ASK.busy?' disabled':'')+'>Ask</button></form>'
+   +'<form class="askbar" id="askForm"><input id="askIn" placeholder="'+(ASK.turns.length?'Change or ask more…':'Ask anything about '+(ASK.inbox||'all inboxes'))+'" aria-label="Your question" autocomplete="off"'+(ASK.busy?' disabled':'')+'><button class="primary" id="askGo"'+(ASK.busy?' disabled':'')+'>Ask</button><button type="button" class="small deepbtn" id="askDeep" title="Takes 10–30 seconds"'+(ASK.busy?' disabled':'')+'>Think harder</button></form>'
    +'</div></div>';
   const c=$('#convo');if(c)c.scrollTop=c.scrollHeight;
 }
 function askAnswer(a,ti){
-  let h='<div class="a"><p>'+esc(mask(a.answer||''))+'</p>';
+  if(a.streaming)return '<div class="a">'+(a.deep?'<div class="deeptag">Thought it through</div>':'')+'<p id="streamA" style="white-space:pre-wrap">'+esc(mask(a.answer||''))+'</p><span class="caret"></span></div>';
+  let h='<div class="a">'+(a.deep?'<div class="deeptag">Thought it through</div>':'')+'<p style="white-space:pre-wrap">'+esc(mask(a.answer||''))+'</p>';
   if(a.points&&a.points.length)h+='<ul class="pts">'+a.points.map(p=>'<li>'+(p.title?'<b class="pt">'+esc(mask(p.title))+'</b>':'')+(p.when?'<span class="when">'+esc(p.when)+'</span>':'')+'<span class="ptx">'+esc(mask(p.text))+'</span>'+(p.biz?'<small>'+esc(p.biz)+'</small>':'')+'</li>').join('')+'</ul>';
   for(const r of a.replies||[]){
     const k=ti+':'+r.id,d=ASK.drafts[k]??r.draft;
@@ -724,15 +737,21 @@ function askAnswer(a,ti){
   }
   return h+'<div class="src">From '+(a.read||0)+' emails'+(a.chats?' and '+a.chats+' chat messages':'')+(a.scope?' in '+esc(a.scope):'')+'.</div></div>';
 }
-async function ask(q){
-  q=String(q||'').trim();if(!q||ASK.busy)return;
-  const turn={q,inbox:ASK.inbox};ASK.turns.push(turn);ASK.busy='Reading your email…';askRender();
-  const t=setTimeout(()=>{if(ASK.busy){ASK.busy='Putting it together…';askRender()}},4000);
+async function ask(q,deep){
+  q=String(q||'').trim();if(!q||ASK.busy||ASK.turns.some(x=>x.a&&x.a.streaming))return;
+  const turn={q,inbox:ASK.inbox,deep:!!deep};ASK.turns.push(turn);ASK.busy=deep?'Thinking it through…':'Reading your email…';askRender();
+  const t=setTimeout(()=>{if(ASK.busy&&!turn.a){ASK.busy=deep?'Weighing what your email shows…':'Putting it together…';askRender()}},deep?6000:4000);
   try{
     const hist=ASK.turns.slice(0,-1).slice(-4).map(t=>({q:t.q,answer:t.a?.answer,replies:(t.a?.replies||[]).map(r=>({id:r.id,ref:r.ref,to:r.to,draft:ASK.drafts[ASK.turns.indexOf(t)+':'+r.id]??r.draft}))}));
     const mb=MB.find(m=>m.email===ASK.inbox);
-    const out=await api('/ask',{question:q,mailbox:mb?.id,mailboxEmail:ASK.inbox||'',history:hist,tz:Intl.DateTimeFormat().resolvedOptions().timeZone});
-    turn.a={answer:out.answer||'Nothing stands out.',points:(out.points||[]).slice(0,8),replies:out.replies||[],read:out.read,chats:out.chats,scope:ASK.inbox||'all inboxes'};
+    let out;
+    try{
+      out=await apiStream('/ask/stream',{question:q,deep:!!deep,mailbox:mb?.id,mailboxEmail:ASK.inbox||'',history:hist,tz:Intl.DateTimeFormat().resolvedOptions().timeZone},ev=>{
+        if(ev.t){if(!turn.a){turn.a={answer:'',streaming:true,deep:!!deep};ASK.busy='';askRender()}turn.a.answer+=ev.t;const el=$('#streamA');if(el){el.textContent=mask(turn.a.answer);const c=$('#convo');if(c)c.scrollTop=c.scrollHeight}}
+      });
+      if(!out)throw {code:'server_error'};
+    }catch(e){if(deep||turn.a)throw e;out=await api('/ask',{question:q,mailbox:mb?.id,mailboxEmail:ASK.inbox||'',history:hist,tz:Intl.DateTimeFormat().resolvedOptions().timeZone})}
+    turn.a={answer:out.answer||'Nothing stands out.',points:(out.points||[]).slice(0,8),replies:out.replies||[],read:out.read,chats:out.chats,scope:ASK.inbox||'all inboxes',deep:!!deep};
   }catch(e){turn.err=errText(e)}
   clearTimeout(t);ASK.busy=false;askRender();setTimeout(()=>$('#askIn')?.focus(),50);
 }
@@ -753,6 +772,7 @@ document.addEventListener('click',e=>{
   const d=b.dataset;
   if(b.id==='askFab'){ASK.open=true;askRender();setTimeout(()=>$('#askIn')?.focus(),50);return}
   if(b.id==='askClose'){ASK.open=false;return askRender()}
+  if(b.id==='askDeep'){const i=$('#askIn');const q=(i&&i.value.trim())||(ASK.turns.length?ASK.turns[ASK.turns.length-1].q:'');if(!q){flash('Type a question first.');return}if(i)i.value='';ask(q,true);return}
   if(d.inbox!==undefined){if(ASK.inbox!==d.inbox){ASK.inbox=d.inbox;ASK.turns=[]}return askRender()}
   if(d.askq)return ask(d.askq);
   if(d.asksend)return askSend(d.asksend);
@@ -822,11 +842,12 @@ document.addEventListener('click',e=>{
     if(it.draft){S.open[id]=true;save();return render()}
     const bb=document.querySelector('[data-mkdraft="'+CSS.escape(id)+'"]');if(bb)bb.click();return}
   if(d.mkdraft){const it=(B.items||[]).find(x=>x.id===d.mkdraft);if(!it)return;b.disabled=true;b.textContent='Writing…';
-    api('/draft',{ref:it.ref||0,title:it.title,why:it.why||'',chat:it.chat||''}).then(r=>{
-      if(!r.draft){b.disabled=false;b.textContent='Draft a reply';return flash('There’s no message to answer for this one.')}
-      S.gen[it.id]={draft:r.draft,ref:r.ref,to:r.to||it.to||'',toEmail:''};
-      S.open[it.id]=true;save();render();
-    }).catch(e=>{b.disabled=false;b.textContent='Draft a reply';flash(errText(e))});return}
+    let started=false;
+    apiStream('/draft/stream',{ref:it.ref||0,title:it.title,why:it.why||'',chat:it.chat||''},ev=>{
+      if(ev.meta){S.gen[it.id]={draft:'',ref:ev.meta.ref,to:ev.meta.to||it.to||'',toEmail:''};S.drafts[it.id]='';S.open[it.id]=true;started=true;render()}
+      else if(ev.t&&started){S.gen[it.id].draft+=ev.t;S.drafts[it.id]=S.gen[it.id].draft;const x=document.querySelector('[data-draft="'+CSS.escape(it.id)+'"]');if(x){x.value=S.gen[it.id].draft;x.scrollTop=x.scrollHeight}}
+    }).then(r=>{if(!started)return;const d=(r&&r.draft)||S.gen[it.id].draft;if(!d.trim()){delete S.gen[it.id];delete S.drafts[it.id];S.open[it.id]=false;render();return flash('There’s no message to answer for this one.')}S.gen[it.id].draft=d;S.drafts[it.id]=d;save();render()})
+    .catch(e=>{if(started){delete S.gen[it.id];delete S.drafts[it.id];S.open[it.id]=false;render()}else{b.disabled=false;b.textContent='Draft a reply'}flash(errText(e))});return}
   if(d.send){const it0=(B.items||[]).find(x=>x.id===d.send),g0=it0&&S.gen&&S.gen[it0.id],it=it0&&g0&&!it0.draft?{...it0,...g0}:it0;if(it&&!pending)send(it);return}
   if(d.done){S.done[d.done]=d.label||'Done';save();return render()}
   if(d.later){S.later[d.later]=true;save();render();return flash('Moved to tomorrow’s briefing.')}
