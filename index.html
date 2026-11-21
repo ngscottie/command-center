@@ -3,6 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Your inboxes, briefed and ready: money first, problems by noon, replies ready to approve.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Command">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fbf8f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16121a" media="(prefers-color-scheme: dark)">
 <title>Command Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -140,6 +151,33 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 @media(max-width:400px){.brand{font-size:12.5px;letter-spacing:.01em}}
 .credit{text-align:center;font-size:12px;color:var(--muted);padding:6px 16px 90px;letter-spacing:.02em}.credit b{color:var(--ink);font-weight:700}
 @media(prefers-reduced-motion:reduce){body{transition:none}}
+.credit .link{display:block;margin:6px auto 0;font-size:13px}
+/* install */
+.isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+.isheet[hidden]{display:none}
+.ibox{background:var(--card);width:min(480px,100%);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.2);animation:up .28s ease-out}
+@media(min-width:600px){.isheet{align-items:center}.ibox{border-radius:20px}}
+.ihead{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+.ihead img{width:60px;height:60px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ihead b{display:block;font-size:18px;line-height:1.25}.ihead small{color:var(--muted);font-size:14px}
+.isteps{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px}
+.isteps li{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:center;font-size:15px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.isteps li>i{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--blush);color:var(--red);font-weight:800;font-size:14px;display:grid;place-items:center}
+.isteps svg{width:20px;height:20px;vertical-align:-4px;margin:0 2px;color:var(--red)}
+.ibtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ibtns.one{grid-template-columns:1fr}
+.ihint{text-align:center;color:var(--muted);font-size:13px;margin:10px 0 0}
+.iarrow{position:fixed;bottom:calc(6px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:31;color:#fff;animation:bob 1.2s ease-in-out infinite}
+.welcome{position:fixed;inset:0;z-index:40;background:var(--bg);display:grid;place-items:center;padding:24px}
+.welcome[hidden]{display:none}
+.welcome .wbox{width:min(420px,100%);text-align:center}
+.welcome img{width:84px;height:84px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.welcome h2{margin:16px 0 6px;font-size:24px}.welcome p{color:var(--muted);margin:0 0 18px}
+.welcome input{width:100%;margin-bottom:10px}.welcome button{width:100%;margin-bottom:8px}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes bob{50%{transform:translate(-50%,6px)}}
+@media(prefers-reduced-motion:reduce){.isheet,.ibox,.iarrow{animation:none}}
+
 </style>
 </head>
 <body>
@@ -149,7 +187,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
-<footer class="credit">Powered by <b>SCTT Technicals</b></footer>
+<footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
 <div id="ask"></div>
 <div id="toast"></div>
 <script>
@@ -616,5 +654,84 @@ setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!document.querySe
 }
 </script>
 
+
+<div class="isheet" id="isheet" hidden role="dialog" aria-modal="true" aria-labelledby="ititle"><div class="ibox" id="ibox"></div></div>
+<div class="welcome" id="welcome" hidden><div class="wbox">
+  <img src="icons/icon-192.png" alt="">
+  <h2>Welcome to Command Center</h2>
+  <p>Open the invite link you were sent, or paste it here to continue.</p>
+  <input id="wlink" placeholder="Paste your invite link" autocomplete="off" aria-label="Invite link">
+  <button class="primary" id="wgo">Continue</button>
+  <button id="wnew">I&rsquo;m setting up for the first time</button>
+  <p id="werr" style="color:var(--red);margin:8px 0 0" hidden>That link didn&rsquo;t work. Copy the whole link from your message and try again.</p>
+</div></div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const ls = { get: k => { try { return localStorage.getItem(k) } catch (e) { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} } };
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const ua = navigator.userAgent;
+  const iOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const iosSafari = iOS && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  let deferred = null;
+  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+
+  const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+  const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-label="Add"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+  const head = '<div class="ihead"><img src="icons/icon-192.png" alt=""><div><b id="ititle">Put Command Center on your home screen</b><small>One tap to your briefing. Opens full screen, like any app.</small></div></div>';
+
+  function close(remember) {
+    $('isheet').hidden = true; const a = document.querySelector('.iarrow'); if (a) a.remove();
+    if (remember) ls.set('cc_install_later', String(Date.now()));
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  function open() {
+    const box = $('ibox');
+    if (deferred) {
+      box.innerHTML = head + '<div class="ibtns"><button id="inot">Not now</button><button class="primary" id="iadd">Add to Home Screen</button></div>';
+      $('iadd').onclick = async () => { deferred.prompt(); const r = await deferred.userChoice.catch(() => ({})); deferred = null; close(r.outcome !== 'accepted'); };
+    } else if (iOS) {
+      // carry the sign-in into the saved icon (iPhone keeps home-screen apps separate from Safari)
+      const t = ls.get('cc_token'); if (t) history.replaceState(null, '', location.pathname + '#t=' + t);
+      box.innerHTML = head + '<ol class="isteps">'
+        + '<li><i>1</i><span>Tap ' + SHARE + ' <b>Share</b>' + (iosSafari ? ' at the bottom of the screen (or tap <b>•••</b> first)' : ' in your browser menu') + '</span></li>'
+        + '<li><i>2</i><span>Scroll and choose ' + PLUS + ' <b>Add to Home Screen</b></span></li>'
+        + '<li><i>3</i><span>Tap <b>Add</b>. That&rsquo;s it.</span></li></ol>'
+        + '<div class="ibtns one"><button id="inot">Got it</button></div>';
+      if (iosSafari && innerWidth < 600) { const a = document.createElement('div'); a.className = 'iarrow'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v15M6 13l6 6 6-6"/></svg>'; document.body.appendChild(a); }
+    } else {
+      box.innerHTML = head + '<ol class="isteps"><li><i>1</i><span>Open your browser menu <b>⋮</b></span></li><li><i>2</i><span>Choose ' + PLUS + ' <b>Add to Home screen</b> or <b>Install app</b></span></li></ol><div class="ibtns one"><button id="inot">Got it</button></div>';
+    }
+    $('inot').onclick = () => close(true);
+    $('isheet').hidden = false; $('inot').focus();
+  }
+  $('isheet').addEventListener('click', e => { if (e.target.id === 'isheet') close(true); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !$('isheet').hidden) close(true); });
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; showLink(); });
+  addEventListener('appinstalled', () => { ls.set('cc_installed', '1'); close(false); $('addHome').hidden = true; });
+
+  const ready = () => { try { return !!ls.get('cc_token') && JSON.parse(ls.get('occF') || '{}').setupDone } catch (e) { return false } };
+  function showLink() { if (!standalone) $('addHome').hidden = !(iOS || deferred || /Android/.test(ua)); }
+  $('addHome').onclick = open;
+  window.ccInstall = open;
+
+  if (standalone) {
+    // opened from the home screen without a sign-in: never start a second account by accident
+    if (!ls.get('cc_token') && !ls.get('occF')) $('welcome').hidden = false;
+  } else {
+    showLink();
+    const later = +ls.get('cc_install_later') || 0;
+    if (ready() && !ls.get('cc_installed') && Date.now() - later > 3 * 864e5 && (iOS || /Android/.test(ua)))
+      setTimeout(() => { if ($('isheet').hidden && !document.querySelector('.sheet:not([hidden])')) open(); }, 3500);
+  }
+  $('wgo').onclick = () => {
+    const m = $('wlink').value.match(/t=([a-f0-9-]{60,})/);
+    if (!m) { $('werr').hidden = false; return; }
+    ls.set('cc_token', m[1]); try { const s = JSON.parse(ls.get('occF') || '{}'); s.setupDone = true; ls.set('occF', JSON.stringify(s)); } catch (e) {}
+    location.replace(location.pathname);
+  };
+  $('wnew').onclick = () => { $('welcome').hidden = true; };
+})();
+</script>
 </body>
 </html>
