@@ -89,6 +89,16 @@ textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:
 .plan .ph{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--red);font-weight:800}.plan p{margin:6px 0 10px;font-size:16px;font-weight:600;line-height:1.4}
 .pchips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.pchip{min-height:40px;border-radius:99px;font-weight:700;font-size:13.5px;padding:0 14px;text-align:left}
 .pchip:first-child{background:var(--red);color:#fff;border-color:var(--red)}.pnote{font-size:12.5px;color:var(--muted)}
+.did{margin-top:10px;font-size:13.5px}.did summary{cursor:pointer;font-weight:700;color:var(--muted)}.did ul{margin:8px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}.did li{color:var(--ink);opacity:.85}
+.qgo{width:100%;margin-top:12px;min-height:46px}
+.qsheet .ibox{max-width:640px;width:100%;max-height:92vh;overflow:auto}.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:17px}
+.qbar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:12px}.qbar i{display:block;height:100%;background:var(--red)}
+body.qopen{overflow:hidden}.showall{display:none;width:100%;margin-top:14px}
+@media(max-width:959px){main:not(.all) .card.more{display:none}main:not(.all) .showall,main.all .showall{display:block}}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--bg);border-top:2px solid var(--red);padding:8px max(3vw,12px) calc(8px + env(safe-area-inset-bottom))}
+.dchips{display:flex;gap:6px;overflow-x:auto;margin-bottom:6px}.dchips button{flex:none;min-height:34px;border-radius:99px;font-size:12.5px;font-weight:700;padding:0 12px}
+.dbar{display:flex;gap:8px;max-width:900px;margin:0 auto}.dbar input{flex:1;min-height:46px;border-radius:99px;padding:0 16px;font-size:16px}.dbar button{border-radius:99px;min-height:46px;padding:0 20px}
+body{padding-bottom:120px}
 .card.flash{outline:3px solid var(--red);outline-offset:2px}
 .mini{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 14px}
 .mrow{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.mrow:first-child{border-top:0}
@@ -232,10 +242,11 @@ button.stat:active{transform:scale(.98)}
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
-<script src="vi.js?v=7"></script>
+<script src="vi.js?v=8"></script>
 <div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
+<div id="queue"></div>
 <div id="toast"></div>
 <script>
 {
@@ -310,7 +321,7 @@ function renderBlocks(){
 function card(it,n){
   const g=S.gen&&S.gen[it.id];if(g&&!it.draft)it={...it,...g,kind:g.ref?'reply':'do'};
   const done=S.done[it.id],open=S.open[it.id];
-  let h='<article data-card="'+esc(it.id)+'" class="card '+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
+  let h='<article data-card="'+esc(it.id)+'" class="card '+(n>3&&!QUEUE?'more ':'')+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
    +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.inbox&&MB.length>1?'<span class="tag inbox" title="Came in to">✉ '+esc(it.inbox)+'</span>':'')+(it.chat?'<span class="tag chat">'+esc((APPS[it.app]?.name||'Chat')+' · '+it.chat)+'</span>':'')+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
    +(it.urg>=3&&!done&&it.cat!=='opp'?'<span class="tag">Top priority</span>':'')+(done?'<span class="tag ok">'+esc(done)+'</span>':'')+'</div>'
    +'<div class="title'+(it.ref?' hasmsg" data-msg="'+it.ref+'" role="button" tabindex="0" title="See the email':'')+'">'+esc(mask(it.title))+'</div>';
@@ -373,7 +384,39 @@ function plan(all){
    +(top?chip(top,'Start here: '+esc(mask(top.title)).slice(0,70)+(top.title.length>70?'…':'')):'')
    +(ready.length?chip(ready[0],'✉ '+ready.length+' repl'+(ready.length===1?'y':'ies')+' ready to approve'):'')
    +(amt?'<button class="pchip" data-view="opp">'+mask(money(amt))+' in leads</button>':'')
-   +(ni>1?'<span class="pnote">'+ni+' inboxes in this list</span>':'')+'</div></section>';
+   +(ni>1?'<span class="pnote">'+ni+' inboxes in this list</span>':'')+'</div>'
+   +(ready.length>1?'<button class="primary qgo" id="qStart">Go through '+ready.length+' replies, one at a time →</button>':'')
+   +didLog()+'</section>';
+}
+function didLog(){
+  const st=B.stats||{},t=d=>new Date(d).toLocaleTimeString(LOC(),{hour:'numeric',minute:'2-digit'});
+  const drafted=(B.items||[]).filter(i=>i.draft).length,sent=Object.values(S.done).filter(v=>v==='Sent').length;
+  const rows=[];
+  for(const m of MB)rows.push(m.status==='ok'?'✓ Checked '+m.email+(m.last_sync?' at '+t(m.last_sync):''):'⚠ Couldn’t open '+m.email+'. It needs to be reconnected.');
+  if(st.emails)rows.push('✓ Read '+st.emails+' emails from the last 3 days');
+  if(st.dupes)rows.push('✓ Set aside '+st.dupes+' copies that came in to more than one inbox');
+  if(drafted)rows.push('✓ Wrote '+drafted+' repl'+(drafted===1?'y':'ies')+' for you to approve');
+  if(B.preparedAt)rows.push('✓ Prepared this briefing at '+t(B.preparedAt));
+  if(URGENT&&URGENT.at)rows.push('✓ Checked again for anything urgent at '+t(URGENT.at));
+  if(sent)rows.push('✓ Sent '+sent+' repl'+(sent===1?'y':'ies')+' you approved');
+  const last=[LAST_CHECK,B.preparedAt].filter(Boolean).map(d=>new Date(d).getTime()).sort((a,b)=>b-a)[0];
+  return '<details class="did"><summary>What I did'+(last?' · last at '+t(last):'')+'</summary><ul>'+rows.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul></details>';
+}
+/* ======================= one at a time: replies to approve ======================= */
+let QUEUE=null;
+function queueIds(){return visible(B.items||[]).filter(i=>!S.later[i.id]&&!S.done[i.id]&&i.draft&&(!S.biz||i.biz===S.biz)).sort((a,b)=>(b.cat==='prio')-(a.cat==='prio')||(b.urg||0)-(a.urg||0)).map(i=>i.id)}
+function renderQueue(){
+  const el=$('#queue');if(!el)return;
+  if(!QUEUE||route!=='home'){el.innerHTML='';document.body.classList.remove('qopen');return}
+  let i=QUEUE.i;while(i<QUEUE.ids.length&&(S.done[QUEUE.ids[i]]||S.later[QUEUE.ids[i]]))i++;
+  if(pending&&QUEUE.ids[QUEUE.i]===pending.id)i=QUEUE.i;
+  QUEUE.i=i;document.body.classList.add('qopen');
+  const total=QUEUE.ids.length,doneN=QUEUE.ids.filter(id=>S.done[id]||S.later[id]).length;
+  if(i>=total){el.innerHTML='<div class="isheet qsheet" role="dialog" aria-modal="true" aria-label="Replies to approve"><div class="ibox"><b style="font-size:20px">All caught up.</b><p class="sub">You went through '+total+' repl'+(total===1?'y':'ies')+'.</p><div class="ibtns one"><button class="primary" id="qClose">Back to your day</button></div></div></div>';return}
+  const it=(B.items||[]).find(x=>x.id===QUEUE.ids[i]);S.open[it.id]=true;
+  el.innerHTML='<div class="isheet qsheet" role="dialog" aria-modal="true" aria-label="Replies to approve"><div class="ibox"><div class="qhead"><b>Reply '+(i+1)+' of '+total+'</b><button class="small" id="qClose">Close</button></div>'
+   +'<div class="qbar"><i style="width:'+Math.round(doneN/total*100)+'%"></i></div>'+card(it,i+1)
+   +'<div class="ibtns"><button id="qPrev"'+(i===0?' disabled':'')+'>← Back</button><button id="qSkip">Skip for now →</button></div></div></div>';
 }
 
 /* ======================= home ======================= */
@@ -398,7 +441,8 @@ function home(){
     main+='<button class="link" id="backDay" style="margin-bottom:4px">← Back to your day</button><h1><em>'+(open.length||'Nothing')+' thing'+(open.length===1?'':'s')+'</em> need'+(open.length===1?'s':'')+' you today.</h1><p class="sub">Every open item across all your businesses, most important first.</p>'+stats;
     for(const [k,l] of [['prio','Focus'],['opp','Leads'],['work','Progress']]){const its=open.filter(i=>i.cat===k).sort((a,b)=>(b.urg||0)-(a.urg||0));if(its.length)main+='<div class="sect"><h2>'+l+'</h2><span>'+its.length+'</span></div>'+its.map(it=>card(it,++n)).join('')}
     if(!open.length)main+='<div class="calm">All clear. Nothing needs you right now.</div>';
-    return '<div class="layout"><main>'+main+'</main>'+ledger(all)+'</div>';
+    main+='<button class="small showall" id="showAll">'+(S.showAll?'Show less':'Show everything')+'</button>';
+    return '<div class="layout"><main class="'+(S.showAll?'all':'')+'">'+main+'</main>'+ledger(all)+'</div>';
   }
   if(blk==='eve'){
     const g=visible(B.good||[]).filter(x=>!S.biz||x.biz===S.biz);
@@ -432,8 +476,9 @@ function home(){
     if(wt.length)main+='<div class="sect"><h2>Others are working on</h2><span>no action from you</span></div><div class="mini">'+wt.map(x=>'<div class="mrow"><div class="grow">'+esc(mask(x.text))+'</div><span class="w">'+esc(x.biz)+'</span></div>').join('')+'</div>';
     main+='<div class="row" style="margin-top:20px"><button class="small" id="refresh">Prepare a fresh briefing now</button></div>';
   }
+  main+='<button class="small showall" id="showAll">'+(S.showAll?'Show less':'Show everything')+'</button>';
   main+='<p class="foot">Replies send only when you tap Approve, with 6 seconds to undo. Tap Ask anytime for a summary of any inbox.</p>';
-  return '<div class="layout"><main>'+main+'</main>'+ledger(all)+'</div>';
+  return '<div class="layout"><main class="'+(S.showAll?'all':'')+'">'+main+'</main>'+ledger(all)+'</div>';
 }
 
 /* ======================= setup / onboarding ======================= */
@@ -585,7 +630,7 @@ function setup(){
   return h;
 }
 function render(){if(B&&Array.isArray(B.items)&&B.items.some(i=>i&&i.chat))B.items=B.items.filter(i=>!i.chat);
-  setTimeout(askRender,0);
+  setTimeout(askRender,0);setTimeout(renderQueue,0);
   if(!S.setupDone)route='setup';
   document.querySelector('.tools').hidden=!S.setupDone;
   renderBlocks();
@@ -739,7 +784,7 @@ function askLabel(a){const b=(S.businesses||[]).find(x=>(x.addr||[]).includes(a)
 function askRender(){
   const el=$('#ask');if(!el)return;
   if(route==='setup'||route==='welcome'){el.innerHTML='';return}
-  if(!ASK.open){el.innerHTML='<button class="fab" id="askFab">Ask</button>';return}
+  if(!ASK.open){if(document.activeElement&&document.activeElement.id==='dockIn')return;el.innerHTML='<div class="dock"><div class="dchips">'+QUICK.slice(0,3).map(q=>'<button data-askq="'+esc(q)+'">'+esc(q)+'</button>').join('')+'</div><form class="dbar" id="dockForm"><input id="dockIn" placeholder="Ask about any inbox…" aria-label="Ask about your email" autocomplete="off"><button class="primary" id="dockGo">Ask</button></form></div>';return}
   const inb=askInboxes();
   el.innerHTML='<div class="sheet" id="askSheet"><div class="pane" role="dialog" aria-label="Ask about your email">'
    +'<div class="phead"><b>Ask about your email</b><button class="small" id="askClose">Close</button></div>'
@@ -798,6 +843,8 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('#ask button, #ask .sheet');if(!b)return;
   if(b.id==='askSheet'){if(e.target===b){ASK.open=false;askRender()}return}
   const d=b.dataset;
+  if(b.id==='dockGo'){e.preventDefault();const q=($('#dockIn')?.value||'').trim();ASK.open=true;askRender();if(q)ask(q);else setTimeout(()=>$('#askIn')?.focus(),50);return}
+  if(d.askq&&!ASK.open){ASK.open=true;askRender();ask(d.askq);return}
   if(b.id==='askFab'){ASK.open=true;askRender();setTimeout(()=>$('#askIn')?.focus(),50);return}
   if(b.id==='askClose'){ASK.open=false;return askRender()}
   if(b.id==='askDeep'){const i=$('#askIn');const q=(i&&i.value.trim())||(ASK.turns.length?ASK.turns[ASK.turns.length-1].q:'');if(!q){flash('Type a question first.');return}if(i)i.value='';ask(q,true);return}
@@ -805,7 +852,7 @@ document.addEventListener('click',e=>{
   if(d.askq)return ask(d.askq);
   if(d.asksend)return askSend(d.asksend);
 });
-document.addEventListener('submit',e=>{if(e.target.id==='askForm'){e.preventDefault();const v=$('#askIn').value;ask(v)}});
+document.addEventListener('submit',e=>{if(e.target.id==='askForm'){e.preventDefault();const v=$('#askIn').value;ask(v)}if(e.target.id==='dockForm'){e.preventDefault();$('#dockGo').click()}});
 document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK.drafts[k]=e.target.value});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
@@ -858,6 +905,11 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const d=b.dataset;
   if(b.id==='pres'){S.pres=!S.pres;if(S.pres&&S.biz==='Personal')S.biz=null;save();return render()}
+  if(b.id==='qStart'){QUEUE={ids:queueIds(),i:0};return renderQueue()}
+  if(b.id==='qClose'){QUEUE=null;render();return}
+  if(b.id==='qSkip'){const id=QUEUE.ids[QUEUE.i];S.open[id]=false;QUEUE.ids.splice(QUEUE.i,1);QUEUE.ids.push(id);if(QUEUE.ids.slice(QUEUE.i).every(x=>x===id||S.done[x])&&QUEUE.ids.length-QUEUE.i<=1){}renderQueue();return}
+  if(b.id==='qPrev'){QUEUE.i=Math.max(0,QUEUE.i-1);let j=QUEUE.i;while(j>0&&S.done[QUEUE.ids[j]])j--;QUEUE.i=j;renderQueue();return}
+  if(b.id==='showAll'){S.showAll=!S.showAll;save();return render()}
   if(b.id==='setupBtn'){if(!S.setupDone)return;route=route==='setup'?'home':'setup';return render()}
   if(d.goto){S.view=d.cat===nowBlock()?'auto':(d.cat||S.view);save();render();const c=document.querySelector('[data-card="'+CSS.escape(d.goto)+'"]');if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1600)}return}
   if(d.view){S.view=d.view===nowBlock()?'auto':d.view;save();render();scrollTo({top:0,behavior:'smooth'});return}
