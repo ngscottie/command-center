@@ -191,7 +191,7 @@ const hourLabel=h=>{const d=new Date();d.setHours(h,0,0,0);return d.toLocaleTime
    blocks.opp  to blocks.prio   Priorities      problems, highest priority first
    blocks.prio to blocks.work   The business    everything else that moves the business forward
    after blocks.work            Good news       nothing that needs a decision                                    */
-const BLOCKS=[{k:'opp',name:'Opportunities'},{k:'prio',name:'Priorities'},{k:'work',name:'The business'},{k:'eve',name:'Good news'}];
+const BLOCKS=[{k:'opp',name:'New Opportunities'},{k:'prio',name:'Today’s Focus'},{k:'work',name:'Building Momentum'},{k:'eve',name:'Today’s Wins'}];
 function nowBlock(){const h=new Date().getHours(),b=S.blocks;return h>=4&&h<b.opp?'opp':h>=b.opp&&h<b.prio?'prio':h>=b.prio&&h<b.work?'work':'eve'}
 const curBlock=()=>S.view==='auto'?nowBlock():S.view;
 const blockTime=k=>{const b=S.blocks;return k==='opp'?'before '+hourLabel(b.opp):k==='prio'?hourLabel(b.opp)+'–'+hourLabel(b.prio):k==='work'?hourLabel(b.prio)+'–'+hourLabel(b.work):'after '+hourLabel(b.work)};
@@ -256,30 +256,30 @@ function home(){
   const later=(k,label)=>{const n=list(k).filter(i=>!S.done[i.id]).length;return n?'<div class="locked"><b>'+n+' '+label+'</b>Ready at '+hourLabel(k==='prio'?S.blocks.opp:S.blocks.prio)+'.</div>':''};
   if(blk==='eve'){
     const g=visible(B.good||[]).filter(x=>!S.biz||x.biz===S.biz);
-    main+='<h1>Good evening, '+esc(S.owner)+'. <em>'+g.length+' good thing'+(g.length===1?'':'s')+'</em> today.</h1><p class="sub">Nothing here needs a decision tonight.</p>'
-     +stats+'<div class="sect"><h2>What went right</h2></div>'+goodList(g)
+    main+='<h1>Good evening, '+esc(S.owner)+'. <em>'+g.length+' win'+(g.length===1?'':'s')+'</em> today.</h1><p class="sub">Nothing here needs a decision tonight.</p>'
+     +stats+'<div class="sect"><h2>Today’s wins</h2></div>'+goodList(g)
      +'<div class="calm">Everything else is handled or set for tomorrow morning. Enjoy your evening.</div>';
   }else{
     const pre='<p class="sub">'+esc(B.source||'Prepared')+' · '+fmtTime(B.preparedAt)+'. Replies are already written; you just approve.</p>';
     if(blk==='opp'){
       const o=list('opp'),open=o.filter(i=>!S.done[i.id]);
       main+='<h1>Good morning, '+esc(S.owner)+'. <em>'+(open.length||'No')+' money move'+(open.length===1?'':'s')+'</em> first.</h1>'+pre+stats
-       +'<div class="sect"><h2>Opportunities</h2><span>money first, before '+hourLabel(S.blocks.opp)+'</span></div>'
+       +'<div class="sect"><h2>New opportunities</h2><span>waiting for you, before '+hourLabel(S.blocks.opp)+'</span></div>'
        +(o.length?o.map((it,i)=>card(it,i+1)).join(''):'<p class="sub">No new opportunities this morning.</p>')
        +'<div class="sect"><h2>Coming up</h2></div>'+later('prio','priorities after breakfast')+'<div style="height:8px"></div>'+later('work','items for the afternoon');
     }else if(blk==='prio'){
       const p=list('prio'),open=p.filter(i=>!S.done[i.id]);
       const missed=list('opp').filter(i=>!S.done[i.id]);
-      main+='<h1><em>'+(open.length||'No')+' priorit'+(open.length===1?'y':'ies')+'</em> before noon.</h1>'+pre+stats
-       +'<div class="sect"><h2>Priorities</h2><span>highest first, done by '+hourLabel(S.blocks.prio)+'</span></div>'
+      main+='<h1><em>'+(open.length||'No')+' thing'+(open.length===1?'':'s')+' to focus on</em> this morning.</h1>'+pre+stats
+       +'<div class="sect"><h2>Today’s focus</h2><span>most important first, done by '+hourLabel(S.blocks.prio)+'</span></div>'
        +(p.length?p.map((it,i)=>card(it,i+1)).join(''):'<p class="sub">Nothing urgent today.</p>')
        +(missed.length?'<details><summary>'+missed.length+' opportunit'+(missed.length===1?'y':'ies')+' still open from this morning</summary>'+missed.map((it,i)=>card(it,i+1)).join('')+'</details>':'');
     }else{
       const left=[...list('prio'),...list('opp')].filter(i=>!S.done[i.id]);
       const w=list('work');
-      main+='<h1>'+(left.length?'<em>'+left.length+' left</em> from this morning.':'Working on the business.')+'</h1>'+pre+stats
-       +(left.length?'<div class="sect"><h2>Finish these first</h2><span>so nothing follows you home</span></div>'+left.map((it,i)=>card(it,i+1)).join(''):'')
-       +'<div class="sect"><h2>The business</h2><span>'+blockTime('work')+'</span></div>'+(w.length?w.map((it,i)=>card(it,left.length+i+1)).join(''):'<p class="sub">Nothing else today.</p>');
+      main+='<h1>'+(left.length?'<em>'+left.length+' left</em> from this morning.':'Building momentum.')+'</h1>'+pre+stats
+       +(left.length?'<div class="sect"><h2>Close these out</h2><span>and the day is yours</span></div>'+left.map((it,i)=>card(it,i+1)).join(''):'')
+       +'<div class="sect"><h2>Building momentum</h2><span>'+blockTime('work')+'</span></div>'+(w.length?w.map((it,i)=>card(it,left.length+i+1)).join(''):'<p class="sub">Nothing else today.</p>');
     }
     const wt=visible(B.waiting||[]).filter(x=>!S.biz||x.biz===S.biz);
     if(wt.length)main+='<div class="sect"><h2>Others are working on</h2><span>no action from you</span></div><div class="mini">'+wt.map(x=>'<div class="mrow"><div class="grow">'+esc(mask(x.text))+'</div><span class="w">'+esc(x.biz)+'</span></div>').join('')+'</div>';
