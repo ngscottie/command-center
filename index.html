@@ -206,12 +206,56 @@ button.stat:active{transform:scale(.98)}
 @keyframes bob{50%{transform:translate(-50%,6px)}}
 @media(prefers-reduced-motion:reduce){.isheet,.ibox,.iarrow{animation:none}}
 
+/* ===== calm redesign: one accent, soft cards, fewer lines and borders ===== */
+:root{--bg:light-dark(#f7f5f2,#141216);--card:light-dark(#fff,#1e1b21);--ink:light-dark(#27221f,#f1edea);--muted:light-dark(#7d7570,#a9a29d);--line:light-dark(#ece7e2,#2d2931);--red:light-dark(#b5364c,#ef7389);--blush:light-dark(#f7edee,#2e2128);--soft:light-dark(#f2eeea,#28242c);--sh:0 1px 2px rgba(40,25,25,.04),0 6px 18px rgba(40,25,25,.05)}
+body{line-height:1.55;-webkit-font-smoothing:antialiased}body.eve{--bg:light-dark(#f5f3f7,#131219)}
+.top{border-bottom:0;background:var(--bg);padding:14px 18px 4px}
+.brand{text-transform:none;letter-spacing:-.01em;font-weight:700;font-size:17px}.brand span{color:var(--ink)}
+.tools{display:none!important}
+.topr{gap:8px}.topr .lang,#menuBtn{border:0;background:var(--soft);min-height:36px;min-width:36px;border-radius:99px;font-weight:700;font-size:12.5px;padding:0 11px;letter-spacing:.03em}
+#menuBtn{display:inline-flex;align-items:center;justify-content:center;padding:0 9px}
+.blocks{gap:24px;padding:4px 18px 0;border-bottom:1px solid var(--line);background:var(--bg);scrollbar-width:none}.blocks::-webkit-scrollbar{display:none}
+.blocks button{min-height:44px;padding:0;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;color:var(--muted)}
+.blocks button small{display:none}
+.blocks button.on{background:none;color:var(--ink);border-color:var(--ink)}.blocks button.now:not(.on){border-color:transparent}
+.blocks button.now::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:6px}
+.layout{padding:24px 18px 110px;gap:28px}
+.hello{margin:0 0 6px;color:var(--muted);font-size:15px;font-weight:600}
+h1{font-size:clamp(25px,4.2vw,34px);font-weight:700;letter-spacing:-.02em;line-height:1.2}h1 em{color:inherit}
+.sub{font-size:14px;margin-top:8px}
+.stats{gap:0;background:var(--card);border-radius:18px;margin:22px 0 4px;box-shadow:var(--sh);overflow:hidden}
+.stat,button.stat{border:0;border-radius:0;background:none;padding:14px 14px 12px;border-left:1px solid var(--line)}.stats .stat:first-child{border-left:0}
+.stat.hero{background:none;color:inherit}.stat.hero small{color:var(--muted)}.stat.hero b{color:var(--red)}
+.stat b{font-size:22px;font-weight:700;margin-top:2px}.stat small{font-size:12.5px}.stat i{font-style:normal;font-size:12px;color:var(--muted);display:block}
+.jump{margin-top:6px}.jump .small{border:0;background:none;color:var(--muted);padding:0;min-height:34px;font-weight:600;font-size:13.5px}
+.sect{margin:30px 2px 10px}.sect h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}.sect span{font-size:12.5px}
+.card{border:0;border-radius:18px;padding:16px 18px;margin-bottom:12px;grid-template-columns:minmax(0,1fr);box-shadow:var(--sh)}.card .num{display:none}
+.meta{margin-bottom:6px;gap:8px}.tag{font-weight:600}.tag.b{border:0;padding:0;background:none;color:var(--muted);font-size:12.5px}
+.title{font-size:16px;font-weight:600;line-height:1.45}.why{font-size:14px;margin-top:6px;line-height:1.5}
+.row{margin-top:14px;gap:8px}
+.card button.small{border:0;background:var(--soft);font-weight:600;min-height:38px;padding:0 16px;border-radius:99px}.card button.small.primary{background:var(--ink);color:var(--bg)}
+.card.done{opacity:.55;box-shadow:none;background:transparent;border:1px solid var(--line)}
+button.primary{border-radius:99px}.drafted{font-weight:600}
+.mini,.calm{border:0;border-radius:18px;box-shadow:var(--sh)}.mini{padding:2px 18px}.calm{padding:16px 18px}
+.mrow{padding:12px 0}.locked{border-radius:18px}
+.urgent{border:0;background:var(--blush);border-radius:18px;padding:16px 18px}.urgent .uhead b{text-transform:none;letter-spacing:0;font-size:15.5px}.urgent .uitem{border-radius:14px;padding:12px 14px}
+.foot{display:none}
+main #refresh.small{border:0;background:none;color:var(--muted);padding:0;min-height:34px;font-weight:600;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
+.fab{background:var(--ink);border-color:var(--ink);color:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.18);min-height:50px;padding:0 22px}
+.manage{background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:0 16px}
+.manage>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:56px;font-weight:600;color:var(--ink);font-size:15px;margin:0}
+.manage>summary::-webkit-details-marker{display:none}.manage>summary span{flex:1}
+.manage>summary::after{content:"\203A";color:var(--muted);font-size:22px;line-height:1;transform:rotate(90deg);transition:transform .2s}
+.manage[open]>summary::after{transform:rotate(-90deg)}.manage[open]{padding-bottom:14px}
+.manage .ledger{border:0;border-radius:14px;background:var(--bg)}.side h3{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 2px 8px}.manage>summary+h3{margin-top:4px}
+.menu .mitem{display:flex;width:100%;justify-content:space-between;align-items:center;border:0;border-radius:14px;background:var(--bg);margin-bottom:8px;min-height:54px;padding:0 16px;font-weight:600;text-align:left}
+.menu .mitem small{color:var(--muted);font-weight:500;font-size:14px}
 </style>
 </head>
 <body>
 <div class="top">
   <div class="brand"><span id="ownerName">Your</span> Command Center</div>
-  <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="refreshBtn" class="lang rf" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
+  <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="refreshBtn" class="lang rf" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button><button id="menuBtn" aria-label="Menu" title="Menu" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg></button></div>
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
@@ -311,7 +355,7 @@ function ledger(all){
   const biz=S.businesses.filter(b=>!(S.pres&&b.key==='Personal'));
   const rows=biz.map(b=>{const its=all.filter(i=>i.biz===b.key&&!S.done[i.id]);const opp=its.filter(i=>i.cat==='opp').reduce((a,i)=>a+(i.value||0),0);const top=its.filter(i=>i.urg>=3&&i.cat!=='opp').length;
     return '<div class="lwrap biz"><button class="lrow '+(S.biz===b.key?'on':'')+'" data-biz="'+esc(b.key)+'"><span>'+esc(b.key)+'</span><small>'+esc([b.what,b.runBy&&b.runBy!==S.owner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt '+(top?'hot':'')+'"><b>'+(its.length||'✓')+'</b>'+(opp?'<i>'+mask(money(opp))+'</i>':(its.length?'open':'clear'))+'</span></button><button class="ledit" data-editbiz="'+esc(b.key)+'" aria-label="Edit '+esc(b.key)+'" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+(b.key==='Personal'?'<span></span>':'<button class="ledit" data-delbiz="'+esc(b.key)+'" aria-label="Remove '+esc(b.key)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>'}).join('');
-  return '<aside class="side" id="bizlist"><h3>Your businesses <span>'+biz.length+'</span></h3><div class="ledger"><button class="lrow '+(!S.biz?'on':'')+'" data-biz=""><span>All businesses</span><small>'+all.filter(i=>!S.done[i.id]).length+' open across everything</small><span class="cnt"><b>'+all.filter(i=>!S.done[i.id]).length+'</b>open</span></button>'+rows+'<button class="ladd" data-editbiz="__new">+ Add a business</button></div>'
+  return '<aside class="side" id="bizlist"><details class="manage"'+((S.manageOpen??innerWidth>=960)?' open':'')+'><summary><span>Businesses, inboxes & chats</span></summary><h3>Your businesses <span>'+biz.length+'</span></h3><div class="ledger"><button class="lrow '+(!S.biz?'on':'')+'" data-biz=""><span>All businesses</span><small>'+all.filter(i=>!S.done[i.id]).length+' open across everything</small><span class="cnt"><b>'+all.filter(i=>!S.done[i.id]).length+'</b>open</span></button>'+rows+'<button class="ladd" data-editbiz="__new">+ Add a business</button></div>'
    +'<p class="note">Tap a business to see only its items. Tap the pencil to change it.</p>'
    +'<h3 style="margin-top:20px">Your inboxes <span>'+MB.length+'</span></h3><div class="ledger">'
    +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
@@ -321,7 +365,7 @@ function ledger(all){
    +CH.map(c=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(APPS[c.app]?.name||c.app)+(c.name?' · '+esc(c.name):'')+'</span><small>'+(c.status==='ok'?'✓ Connected'+(c.last_sync?' · checked '+new Date(c.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
      +'<button class="ledit" data-delchat="'+esc(c.id)+'" aria-label="Remove '+esc(APPS[c.app]?.name||c.app)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button></div>').join('')
    +'<button class="ladd" id="addChat">+ Connect a group chat</button></div>'
-   +'<p class="note">Messages from your group chats are read with your email and show up in the same briefing.</p></aside>';
+   +'<p class="note">Messages from your group chats are read with your email and show up in the same briefing.</p></details></aside>';
 }
 
 /* ======================= home ======================= */
@@ -333,9 +377,9 @@ function home(){
   const scoped=S.biz?all.filter(i=>i.biz===S.biz):all;
   const st=B.stats||{},hours=(st.minutesSaved||0)/60;
   const oppMoney=all.filter(i=>i.cat==='opp'&&!S.done[i.id]).reduce((a,i)=>a+(i.value||0),0);
-  const stats='<div class="stats"><button class="stat hero" id="needToday" aria-label="See everything that needs you today"><small>Need you today ›</small><b>'+all.filter(i=>!S.done[i.id]).length+'</b></button>'
-   +'<button class="stat money" data-view="opp" aria-label="See your leads"><small>Money waiting on you ›</small><b>'+mask(money(oppMoney))+'</b></button>'
-   +'<button class="stat money" id="hourBtn" aria-label="Change what an hour of your time is worth"><small>Your time saved ('+hours.toFixed(1)+' h) ›</small><b>'+mask(money(hours*S.hourValue))+'</b></button></div>'
+  const stats='<div class="stats"><button class="stat hero" id="needToday" aria-label="See everything that needs you today"><small>Need you</small><b>'+all.filter(i=>!S.done[i.id]).length+'</b></button>'
+   +'<button class="stat money" data-view="opp" aria-label="See your leads"><small>Money waiting</small><b>'+mask(money(oppMoney))+'</b></button>'
+   +'<button class="stat money" id="hourBtn" aria-label="Change what an hour of your time is worth"><small>Time saved</small><b>'+mask(money(hours*S.hourValue))+'</b><i>'+hours.toFixed(1)+' h</i></button></div>'
    +'<div class="row jump"><button class="small" id="jumpBiz">'+(S.biz?esc(S.biz)+' \u00b7 change':'Your '+S.businesses.length+' businesses \u2193')+'</button>'+(S.biz?'<button class="link" data-biz="">Show all</button>':'')+'</div>';
   let main='<div class="status" id="status" hidden></div>';
   if(URGENT&&URGENT.items.length)main+='<section class="urgent" aria-label="Needs you now"><div class="uhead"><b>Needs you now</b><button class="link" id="urgentOk">Got it</button></div>'+URGENT.items.map(u=>'<div class="uitem"><span class="tag b">'+esc(u.biz||'')+'</span><div class="title">'+esc(mask(u.title))+'</div>'+(u.why?'<p class="why">'+esc(mask(u.why))+'</p>':'')+'</div>').join('')+'<p class="sub" style="font-size:12.5px;margin:6px 0 0">Checked '+new Date(URGENT.at).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'})+'. Everything else will be in your next briefing.</p></section>';
@@ -354,7 +398,8 @@ function home(){
      +stats+'<div class="sect"><h2>Accomplishments</h2></div>'+goodList(g)
      +'<div class="calm">Everything else is handled or set for tomorrow morning. Enjoy your evening.</div>';
   }else{
-    const pre='<p class="sub">Updated '+fmtTime(B.preparedAt)+(LAST_CHECK?' · mail checked '+new Date(LAST_CHECK).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):'')+'. Replies are already written; you just approve.</p>';
+    const pre='<p class="sub">Checked '+new Date(LAST_CHECK||B.preparedAt).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'})+'</p>';
+    const hi=now.getHours()<12?'Good morning':now.getHours()<17?'Good afternoon':'Good evening',hello=S.owner?'<p class="hello">'+hi+', '+esc(S.owner)+'</p>':'';
     if(blk==='opp'){
       const o=list('opp'),open=o.filter(i=>!S.done[i.id]);
       main+='<h1>Good morning, '+esc(S.owner)+'. <em>'+(open.length||'No')+' money move'+(open.length===1?'':'s')+'</em> first.</h1>'+pre+stats
@@ -364,14 +409,14 @@ function home(){
     }else if(blk==='prio'){
       const p=list('prio'),open=p.filter(i=>!S.done[i.id]);
       const missed=list('opp').filter(i=>!S.done[i.id]);
-      main+='<h1>'+(open.length?'<em>'+open.length+' thing'+(open.length===1?'':'s')+' to focus on</em> this morning.':'<em>Nothing</em> to focus on this morning.')+'</h1>'+pre+stats
+      main+=hello+'<h1>'+(open.length?'<em>'+open.length+' thing'+(open.length===1?'':'s')+' to focus on</em> this morning.':'<em>Nothing</em> to focus on this morning.')+'</h1>'+pre+stats
        +'<div class="sect"><h2>Focus</h2><span>most important first, done by '+hourLabel(S.blocks.prio)+'</span></div>'
        +(p.length?p.map((it,i)=>card(it,i+1)).join(''):'<p class="sub">Nothing urgent today.</p>')
        +(missed.length?'<details><summary>'+missed.length+' opportunit'+(missed.length===1?'y':'ies')+' still open from this morning</summary>'+missed.map((it,i)=>card(it,i+1)).join('')+'</details>':'');
     }else{
       const left=[...list('prio'),...list('opp')].filter(i=>!S.done[i.id]);
       const w=list('work');
-      main+='<h1>'+(left.length?'<em>'+left.length+' left</em> from this morning.':'Making progress.')+'</h1>'+pre+stats
+      main+=hello+'<h1>'+(left.length?'<em>'+left.length+' left</em> from this morning.':'Making progress.')+'</h1>'+pre+stats
        +(left.length?'<div class="sect"><h2>Close these out</h2><span>and the day is yours</span></div>'+left.map((it,i)=>card(it,i+1)).join(''):'')
        +'<div class="sect"><h2>Progress</h2><span>'+blockTime('work')+'</span></div>'+(w.length?w.map((it,i)=>card(it,left.length+i+1)).join(''):'<p class="sub">Nothing else today.</p>');
     }
@@ -385,7 +430,7 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let HOUREDIT=false,URGENT=null,EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
+let MENU=false,HOUREDIT=false,URGENT=null,EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
 const ES={};
 addEventListener('message',e=>{try{if(!/(^|\.)facebook\.com$/.test(new URL(e.origin).hostname))return;const d=typeof e.data==='string'?JSON.parse(e.data):e.data;if(d&&d.type==='WA_EMBEDDED_SIGNUP'){if(/^FINISH/.test(d.event||'')){ES.waba=d.data?.waba_id;ES.pid=d.data?.phone_number_id}else if(d.event==='CANCEL')ES.cancel=true}}catch(_){}});
 function fbSdk(appId){return window.FB?Promise.resolve():new Promise((ok,no)=>{window.fbAsyncInit=()=>{FB.init({appId,autoLogAppEvents:true,xfbml:false,version:'v23.0'});ok()};const s=document.createElement('script');s.src='https://connect.facebook.net/en_US/sdk.js';s.async=true;s.crossOrigin='anonymous';s.onerror=no;document.head.appendChild(s)})}
@@ -542,10 +587,17 @@ function render(){
   else{$('.brand').innerHTML='<span id="ownerName">'+(S.owner?esc(S.owner)+'’s':'Your')+'</span> Command Center';document.title=(S.owner?S.owner+'’s ':'')+'Command Center'}
   $('#langBtn').textContent=S.lang==='vi'?'EN':'VI';document.documentElement.lang=S.lang==='vi'?'vi':'en';
   $('#app').innerHTML=route==='setup'?setup():home();
-  const md=$('#modal'),want=CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:CHATCONN?'ch:'+CHATCONN:HOUREDIT?'hour':(EDIT&&route!=='setup'?EDIT:'');
-  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=CONFIRM?confirmSheet(CONFIRM):CHATCONN?chatSheet():HOUREDIT?hourSheet():'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
+  $('#menuBtn').hidden=!S.setupDone;
+  const md=$('#modal'),want=MENU?'menu:'+S.pres:CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:CHATCONN?'ch:'+CHATCONN:HOUREDIT?'hour':(EDIT&&route!=='setup'?EDIT:'');
+  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=MENU?menuSheet():CONFIRM?confirmSheet(CONFIRM):CHATCONN?chatSheet():HOUREDIT?hourSheet():'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
   md.dataset.k=want;
 }
+function menuSheet(){const ah=$('#addHome');return '<div class="isheet" id="menuSheet" role="dialog" aria-modal="true" aria-label="Menu"><div class="ibox menu">'
+  +'<button class="mitem" id="mManage">Businesses, inboxes & chats<small>›</small></button>'
+  +'<button class="mitem" id="mPres">Presenting mode<small>'+(S.pres?'On':'Off')+'</small></button>'
+  +'<button class="mitem" id="mSetup">Setup<small>›</small></button>'
+  +(ah&&!ah.hidden?'<button class="mitem" id="mHome">Add to Home Screen<small>›</small></button>':'')
+  +'<p class="ihint">Replies send only when you tap Approve, with 6 seconds to undo.</p><div class="ibtns one" style="margin-top:12px"><button id="mClose">Close</button></div></div></div>'}
 function flash(t){const s=$('#status');if(s){s.textContent=t;s.hidden=!t}else if(t){toast(esc(t));setTimeout(()=>toast(''),5000)}}
 function toast(html){$('#toast').innerHTML=html?'<div class="toast" role="status">'+html+'</div>':''}
 const errText=e=>({auth_failed:'That password didn’t work. For Gmail, iCloud and Yahoo use an app password (steps above), not your normal password.',
@@ -778,8 +830,16 @@ document.addEventListener('change',e=>{
   if(e.target.id==='bizType'){const c=$('#bizCustom');c.hidden=e.target.value!=='other';if(!c.hidden)c.focus()}
   if(e.target.id==='eType'){const c=$('#eCustomL');c.hidden=e.target.value!=='other';if(!c.hidden)$('#eCustom').focus()}
 });
+document.addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('manage')){S.manageOpen=e.target.open;save()}},true);
+document.addEventListener('click',e=>{if(e.target.id==='menuSheet'){MENU=false;render()}});
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(b.id==='menuBtn'){MENU=true;return render()}
+  if(b.id==='mClose'){MENU=false;return render()}
+  if(b.id==='mPres'){S.pres=!S.pres;if(S.pres&&S.biz==='Personal')S.biz=null;save();return render()}
+  if(b.id==='mSetup'){MENU=false;route='setup';scrollTo(0,0);return render()}
+  if(b.id==='mManage'){MENU=false;route='home';S.manageOpen=true;save();render();setTimeout(()=>$('#bizlist')?.scrollIntoView({behavior:'smooth'}),30);return}
+  if(b.id==='mHome'){MENU=false;render();$('#addHome').click();return}
   if(b.id==='pres'){S.pres=!S.pres;if(S.pres&&S.biz==='Personal')S.biz=null;save();return render()}
   if(b.id==='setupBtn'){if(!S.setupDone)return;route=route==='setup'?'home':'setup';return render()}
   if(d.view){S.view=d.view===nowBlock()?'auto':d.view;save();return render()}
@@ -790,7 +850,7 @@ document.addEventListener('click',e=>{
   if(d.done){S.done[d.done]=d.label||'Done';save();return render()}
   if(d.later){S.later[d.later]=true;save();render();return flash('Moved to tomorrow’s briefing.')}
   if(b.id==='refresh')return refresh(b);
-  if(b.id==='jumpBiz'){document.querySelector('.side')?.scrollIntoView({behavior:'smooth'});return}
+  if(b.id==='jumpBiz'){S.manageOpen=true;save();render();setTimeout(()=>$('#bizlist')?.scrollIntoView({behavior:'smooth'}),30);return}
   /* setup */
   if(b.id==='next'){
     if(S.setupStep===0){S.owner=$('#ownerIn').value.trim();S.partner=$('#partnerIn').value.trim();if(!S.owner){render();return flash('What should we call you?')}ensureAccount().then(pushSettings).catch(e=>flash(errText(e)))}

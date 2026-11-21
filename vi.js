@@ -37,7 +37,7 @@ window.CC_VI = {
     "Looking through your email for your businesses…": "Đang xem email để tìm doanh nghiệp của bạn…",
     "Powered by": "Phát triển bởi", "Add to Home Screen": "Thêm vào Màn hình chính", "Put Command Center on your home screen": "Đưa Trung tâm điều hành ra màn hình chính", "One tap to your briefing. Opens full screen, like any app.": "Một chạm là mở bản tóm tắt. Mở toàn màn hình như mọi ứng dụng khác.",
     "Welcome to Command Center": "Chào mừng đến Trung tâm điều hành", "Open the invite link you were sent, or paste it here to continue.": "Mở đường dẫn mời đã gửi cho bạn, hoặc dán vào đây để tiếp tục.", "I’m setting up for the first time": "Tôi cài đặt lần đầu",
-    "Needs you now": "Cần bạn ngay", "Got it": "Đã hiểu", "Pull down to check": "Kéo xuống để kiểm tra", "Release to check": "Thả ra để kiểm tra", "@Refresh": "Làm mới", "Checking for anything new…": "Đang kiểm tra tin mới…", "✓ You’re up to date.": "✓ Mọi thứ đã cập nhật.",
+    "Needs you now": "Cần bạn ngay", "Got it": "Đã hiểu", "Pull down to check": "Kéo xuống để kiểm tra", "Release to check": "Thả ra để kiểm tra", "Need you": "Cần bạn", "Money waiting": "Tiền đang chờ", "Time saved": "Thời gian tiết kiệm", "Businesses, inboxes & chats": "Doanh nghiệp, hộp thư & nhóm chat", "Presenting mode": "Chế độ trình chiếu", "On": "Bật", "Off": "Tắt", "Add to Home Screen": "Thêm vào màn hình chính", "Replies send only when you tap Approve, with 6 seconds to undo.": "Thư trả lời chỉ được gửi khi bạn bấm Duyệt, và có 6 giây để hoàn tác.", "@Menu": "Menu", "Good morning": "Chào buổi sáng", "@Refresh": "Làm mới", "Checking for anything new…": "Đang kiểm tra tin mới…", "✓ You’re up to date.": "✓ Mọi thứ đã cập nhật.",
     "Remove": "Xóa", "Keep it": "Giữ lại",
     "What’s an hour of your time worth?": "Một giờ của bạn đáng giá bao nhiêu?", "We use it to show what your assistant saves you each day.": "Chúng tôi dùng con số này để cho thấy trợ lý giúp bạn tiết kiệm bao nhiêu mỗi ngày.", "Dollars per hour": "Đô la mỗi giờ", "Save": "Lưu",
     // placeholders and labels
@@ -45,6 +45,11 @@ window.CC_VI = {
     "@See everything that needs you today": "Xem mọi việc cần bạn hôm nay", "@See your leads": "Xem khách hàng tiềm năng", "@Ask anything about all inboxes": "Hỏi bất cứ điều gì về tất cả hộp thư", "@Change or ask more…": "Sửa hoặc hỏi thêm…", "@Add a business": "Thêm doanh nghiệp", "@Edit business": "Sửa doanh nghiệp", "@Edit": "Sửa", "@Remove": "Xóa"
   },
   patterns: [
+    [/^Checked (\d[^.]*)$/, "Đã kiểm tra lúc $1"],
+    [/^([\d.,]+) h$/, "$1 giờ"],
+    [/^Good morning, (.+)$/, "Chào buổi sáng, $1"],
+    [/^Good afternoon, (.+)$/, "Chào buổi chiều, $1"],
+    [/^Good evening, (.+)$/, "Chào buổi tối, $1"],
     [/^Good morning, (.+)\.$/, "Chào buổi sáng, $1."], [/^Good evening, (.+)\.$/, "Chào buổi tối, $1."], [/^Good morning,$/, "Chào buổi sáng,"],
     [/^(\d+) money moves?$/, "$1 cơ hội kiếm tiền"], [/^No money moves$/, "Chưa có cơ hội kiếm tiền"], [/^first\.$/, "trước tiên."],
     [/^(\d+) things? to focus on$/, "$1 việc cần tập trung"], [/^Nothing$/, "Không có gì"], [/^to focus on this morning\.$/, "cần tập trung sáng nay."], [/^this morning\.$/, "sáng nay."],
