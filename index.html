@@ -35,7 +35,7 @@ input,select{border:1px solid var(--line);background:var(--card);border-radius:1
 .tools button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .blocks{display:flex;gap:6px;overflow-x:auto;padding:10px max(3vw,14px);border-bottom:1px solid var(--line);background:var(--bg)}
 .blocks button{flex:none;min-height:40px;font-size:13.5px;font-weight:700;border-radius:99px;padding:0 14px;display:flex;gap:6px;align-items:center}
-.blocks button small{font-weight:500;color:var(--muted)}
+.blocks button{text-transform:uppercase;letter-spacing:.05em}.blocks button small{font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 .blocks button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.blocks button.on small{color:var(--bg);opacity:.75}
 .blocks button.now:not(.on){border-color:var(--red)}
 .layout{max-width:1180px;margin:0 auto;padding:18px max(3vw,14px) 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
@@ -171,7 +171,7 @@ async function api(path,body){
 }
 let ACC_P=null,DISC_BUSY=false;
 async function ensureAccount(){if(TOKEN)return;if(!ACC_P)ACC_P=api('/account',{owner:S.owner,partner:S.partner}).then(a=>{TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}).finally(()=>{ACC_P=null});return ACC_P}
-let MB=[];/* connected inboxes from the server */
+let MB=[],LAST_CHECK=null;/* connected inboxes from the server */
 let OAUTH={google:false,microsoft:false};
 const sendFrom=()=>MB[0]?.email||'your email';
 let SEED={preparedAt:null,items:[],waiting:[],good:[],stats:{}};
@@ -264,7 +264,7 @@ function home(){
      +stats+'<div class="sect"><h2>Accomplishments</h2></div>'+goodList(g)
      +'<div class="calm">Everything else is handled or set for tomorrow morning. Enjoy your evening.</div>';
   }else{
-    const pre='<p class="sub">'+esc(B.source||'Prepared')+' · '+fmtTime(B.preparedAt)+'. Replies are already written; you just approve.</p>';
+    const pre='<p class="sub">Updated '+fmtTime(B.preparedAt)+(LAST_CHECK?' · mail checked '+new Date(LAST_CHECK).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+'. Replies are already written; you just approve.</p>';
     if(blk==='opp'){
       const o=list('opp'),open=o.filter(i=>!S.done[i.id]);
       main+='<h1>Good morning, '+esc(S.owner)+'. <em>'+(open.length||'No')+' money move'+(open.length===1?'':'s')+'</em> first.</h1>'+pre+stats
@@ -431,11 +431,12 @@ async function loadState(){
     const st=r.account?.settings||{};if(st.app)S={...S,...st.app};
     if(r.account?.owner)S.owner=r.account.owner;if(r.account?.partner!==undefined)S.partner=r.account.partner||S.partner;
     if(r.briefing&&r.briefing.preparedAt!==B.preparedAt)B=r.briefing;
+    LAST_CHECK=r.account?.last_sync_at||LAST_CHECK;
   }catch(e){if(e.code==='Sign in first.'){TOKEN=null;try{localStorage.removeItem('cc_token')}catch(_){}}}
   render();
 }
 let pushT;function pushSettings(){clearTimeout(pushT);pushT=setTimeout(()=>{if(!TOKEN)return;
-  const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest};
+  const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest,done:S.done,later:S.later,tz:Intl.DateTimeFormat().resolvedOptions().timeZone};
   api('/settings',{owner:S.owner,partner:S.partner,settings:{businesses:S.businesses,app}}).catch(()=>{})},800)}
 async function oauthStart(btn,provider){
   btn.disabled=true;flash('Opening '+(provider==='google'?'Google':'Microsoft')+'…');
@@ -607,7 +608,7 @@ document.addEventListener('change',e=>{
       if(!(S.suggest||[]).length)setTimeout(()=>api('/discover',{}).then(o=>{S.suggest=(o&&Array.isArray(o.businesses)?o.businesses:[]).filter(x=>x&&x.name).slice(0,8);if(o&&!S.owner&&o.firstName)S.owner=o.firstName;save();render()}).catch(()=>{}),1500)}
     else setTimeout(()=>flash(q.get('oauth_error')==='access_denied'?'Google sign-in was cancelled. Try again, or use an app password.':'Google sign-in didn’t finish ('+q.get('oauth_error')+'). Try again.'),600);
   }})();
-loadState().then(()=>TOKEN&&api('/oauth/available',{}).then(o=>{OAUTH=o;render()}).catch(()=>{}));
+loadState().then(()=>{if(TOKEN&&S.setupDone)pushSettings()}).then(()=>TOKEN&&api('/oauth/available',{}).then(o=>{OAUTH=o;render()}).catch(()=>{}));
 render();
 setInterval(()=>{if(TOKEN&&S.setupDone&&!pending)loadState()},300000);
 setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!document.querySelector('#refresh[disabled]')&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName))render()},60000);
