@@ -364,6 +364,22 @@ function home(){
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
 let EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
+const ES={};
+addEventListener('message',e=>{try{if(!/(^|\.)facebook\.com$/.test(new URL(e.origin).hostname))return;const d=typeof e.data==='string'?JSON.parse(e.data):e.data;if(d&&d.type==='WA_EMBEDDED_SIGNUP'){if(/^FINISH/.test(d.event||'')){ES.waba=d.data?.waba_id;ES.pid=d.data?.phone_number_id}else if(d.event==='CANCEL')ES.cancel=true}}catch(_){}});
+function fbSdk(appId){return window.FB?Promise.resolve():new Promise((ok,no)=>{window.fbAsyncInit=()=>{FB.init({appId,autoLogAppEvents:true,xfbml:false,version:'v23.0'});ok()};const s=document.createElement('script');s.src='https://connect.facebook.net/en_US/sdk.js';s.async=true;s.crossOrigin='anonymous';s.onerror=no;document.head.appendChild(s)})}
+async function waEmbedded(btn){
+  const cfg=OAUTH.whatsapp,err=m=>{btn.disabled=false;btn.textContent='Continue with Facebook';const x=$('#chErr');if(x){x.textContent=m;x.hidden=false}};
+  btn.disabled=true;btn.textContent='Opening Facebook…';Object.keys(ES).forEach(k=>delete ES[k]);
+  try{await fbSdk(cfg.appId)}catch(e){return err('Facebook didn’t load. Check your connection and try again.')}
+  FB.login(async r=>{
+    const code=r&&r.authResponse&&r.authResponse.code;if(!code)return err(ES.cancel?'Sign-in was cancelled.':'Facebook sign-in didn’t finish. Try again.');
+    btn.textContent='Connecting your number…';
+    for(let i=0;i<20&&!(ES.waba&&ES.pid);i++)await new Promise(ok=>setTimeout(ok,250));
+    if(!(ES.waba&&ES.pid))return err('We couldn’t see which number you picked. Try again and finish all the steps.');
+    try{const out=await api('/wa/es/complete',{code,wabaId:ES.waba,phoneId:ES.pid});CHATCONN=null;await loadState();flash('✓ WhatsApp connected: '+(out.chat?.name||'your number')+'. New customer messages will show in your briefing.')}
+    catch(e){err(errText(e))}
+  },{config_id:cfg.configId,response_type:'code',override_default_response_type:true,extras:{setup:{},sessionInfoVersion:'3'}});
+}
 function waBox(){
   const w=WAQR;
   if(!w)return '<p class="sub" style="margin-top:10px">Your assistant reads your WhatsApp the same way WhatsApp Web does. It only reads; it never sends anything.</p>'
@@ -384,7 +400,7 @@ async function waPoll(){if(!WAQR)return waStop();try{const r=await api('/chats/w
   if(r.status==='connected'){waStop();loadState()}
   if(r.status==='logged_out'){waStop();WAQR=null;CHATCONN='whatsapp_qr';render();return flash('That link didn’t finish. Try again.')}
   if(prev!==WAQR.qr+WAQR.status||WAQR.noWorker)waPaint()}catch(e){}}
-const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp Business',live:true,note:'The official, safe way: customer messages to your WhatsApp Business number.'},whatsapp_qr:{name:'WhatsApp',live:true,note:'Scan a code with your phone, like WhatsApp Web. Reads your chats and groups.'},demo:{name:'Zalo (sample)',live:false}};
+const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo Official Account',live:true,note:'Customer messages to your business’s Zalo OA. Personal Zalo can’t be connected.'},whatsapp:{name:'WhatsApp Business',live:true,note:'The official, safe way: customer messages to your WhatsApp Business number.'},whatsapp_qr:{name:'WhatsApp',live:true,note:'Scan a code with your phone, like WhatsApp Web. Reads your chats and groups.'},demo:{name:'Zalo (sample)',live:false}};
 function chatSheet(){
   const a=CHATCONN;
   let h='<div class="isheet" id="chSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="ibox"><b id="chTitle" style="font-size:18px">Connect a group chat</b>';
@@ -393,7 +409,18 @@ function chatSheet(){
     +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">We read your groups and direct messages from the last few days. Nothing is posted to your chats.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect GroupMe</button></div>';
   else if(a==='whatsapp_qr')h+='<div id="waBox">'+waBox()+'</div>';
-  else if(a==='whatsapp')h+='<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>Open your WhatsApp setup in <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> (we set this up together the first time)</span></li><li><i>2</i><span>Under <b>WhatsApp → API Setup</b>, copy the <b>Phone number ID</b> and the <b>access token</b></span></li><li><i>3</i><span>Paste both here</span></li></ol>'
+  else if(a==='whatsapp'&&OAUTH.whatsapp)h+='<p class="sub" style="margin-top:10px">Sign in with the Facebook account that manages your business, then pick your WhatsApp Business number. That’s it.</p>'
+    +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p>'
+    +'<button class="primary" id="waFb" style="width:100%;margin-top:12px;background:#1877F2;border-color:#1877F2">Continue with Facebook</button>'
+    +'<p class="sub" style="font-size:13px;margin:10px 0 0">The official WhatsApp connection. We only read customer messages; nothing is sent without you.</p>'
+    +'<div class="ibtns" style="margin-top:12px"><button id="chBack">Back</button><button id="waManual">Set it up with help</button></div>';
+  else if(a==='zalo')h+=(OAUTH.zalo?'<p class="sub" style="margin-top:10px">Sign in to the Zalo account that manages your business’s Official Account, then tap <b>Allow</b>. That’s it.</p>'
+      +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p>'
+      +'<button class="primary" id="zaloGo" style="width:100%;margin-top:12px;background:#0068FF;border-color:#0068FF">Continue with Zalo</button>'
+      +'<p class="sub" style="font-size:13px;margin:10px 0 0">Works with Zalo Official Accounts (business). Personal Zalo chats can’t be connected.</p>'
+    :'<p class="sub" style="margin-top:10px">Zalo sign-in is almost ready. We’re finishing approval with Zalo; you’ll see a <b>Continue with Zalo</b> button here soon.</p>')
+    +'<div class="ibtns one" style="margin-top:12px"><button id="chBack">Back</button></div>';
+  else if(a==='whatsapp'||a==='whatsapp_manual')h+=(a==='whatsapp'?'<div class="status" style="margin-top:10px">One-tap Facebook sign-in is almost ready. Until then, we can connect your number together:</div>':'')+'<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>Open your WhatsApp setup in <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> (we set this up together the first time)</span></li><li><i>2</i><span>Under <b>WhatsApp → API Setup</b>, copy the <b>Phone number ID</b> and the <b>access token</b></span></li><li><i>3</i><span>Paste both here</span></li></ol>'
     +'<input id="chPid" placeholder="Phone number ID" inputmode="numeric" autocomplete="off" style="width:100%;margin-bottom:8px"><input id="chTok" placeholder="Access token" autocomplete="off" spellcheck="false" style="width:100%">'
     +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">New customer messages to your WhatsApp Business number show up in your briefing. Nothing is sent without you.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect WhatsApp</button></div>';
@@ -735,9 +762,12 @@ document.addEventListener('click',e=>{
   if(b.id==='waStart'){b.disabled=true;b.textContent='Starting…';waLoadLib().catch(()=>{}).then(()=>api('/chats/wa/start',{})).then(r=>{WAQR={id:r.id,source:r.source,status:'pending',qr:null,t0:Date.now()};waPaint();waStop();WAQR_T=setInterval(waPoll,2000);waPoll()}).catch(e=>{b.disabled=false;b.textContent='I understand, show the code';const m=$('#chErr');if(m){m.textContent=errText(e);m.hidden=false}});return}
   if(b.id==='waCancel'){const w=WAQR;waStop();WAQR=null;CHATCONN='pick';render();if(w&&w.status!=='connected')api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{});return}
   if(b.id==='waDone'){waStop();WAQR=null;CHATCONN=null;render();loadState();return flash('✓ WhatsApp connected. Your next briefing will include your chats.')}
+  if(b.id==='waManual'){CHATCONN='whatsapp_manual';return render()}
+  if(b.id==='waFb'){waEmbedded(b);return}
+  if(b.id==='zaloGo'){b.disabled=true;b.textContent='Opening Zalo…';api('/zalo/start',{}).then(r=>{location.href=r.url}).catch(e=>{b.disabled=false;b.textContent='Continue with Zalo';const m=$('#chErr');m.textContent=errText(e);m.hidden=false});return}
   if(b.id==='chBack'){CHATCONN='pick';return render()}
   if(b.id==='chClose'){CHATCONN=null;return render()}
-  if(b.id==='chGo'){const app=CHATCONN,tok=($('#chTok').value||'').trim(),pid=($('#chPid')?.value||'').trim(),nm=APPS[app].name,label=b.textContent;if(!tok||(app==='whatsapp'&&!pid))return;b.disabled=true;b.textContent='Connecting…';
+  if(b.id==='chGo'){const app=CHATCONN==='whatsapp_manual'?'whatsapp':CHATCONN,tok=($('#chTok').value||'').trim(),pid=($('#chPid')?.value||'').trim(),nm=APPS[app].name,label=b.textContent;if(!tok||(app==='whatsapp'&&!pid))return;b.disabled=true;b.textContent='Connecting…';
     api('/chats/connect',{app,token:tok,phoneId:pid}).then(r=>{CHATCONN=null;return loadState().then(()=>flash('✓ '+nm+' connected'+(r.messages?': '+r.messages+' recent messages read.':'.')+' Your next briefing will include it.'))})
       .catch(e=>{b.disabled=false;b.textContent=label;const m=$('#chErr');m.textContent=e.code==='auth_failed'?nm+' didn’t accept that. Copy it again and paste the whole thing.':errText(e);m.hidden=false});return}
   if(d.delchat){const c=CH.find(x=>x.id===d.delchat);CONFIRM={kind:'chat',id:d.delchat,label:c?(APPS[c.app]?.name||c.app)+(c.name?' · '+c.name:''):'this chat'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
