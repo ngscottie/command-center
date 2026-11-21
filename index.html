@@ -197,12 +197,12 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 {
 /* ======================= owner + businesses ======================= */
 const TYPES={
- realestate:{label:'Real estate',help:['New deals, offers and lender email first thing every morning','Tenant, property manager and escrow deadlines caught before they slip','Every document and signature request in one list']},
- salon:{label:'Beauty or nail salon',help:['Bookings, cancellations and supply orders answered fast, replies ready to approve','New reviews caught the same day, with a thank-you or fix drafted','Weekly posts of your best sets so new clients find you']},
- food:{label:'Restaurant',help:['Event and group inquiries answered the same day','Deposits and invoices followed up until they are paid','Posts that keep regulars coming back']},
+ salon:{label:'Beauty / Nail Salon',help:['Bookings, cancellations and supply orders answered fast, replies ready to approve','New reviews caught the same day, with a thank-you or fix drafted','Weekly posts of your best sets so new clients find you']},
+ coffee:{label:'Coffee Shop',help:['Contractor, permit and vendor email tracked so opening day stays on schedule','Every quote and invoice in one place, nothing paid twice','Opening buzz on social before the doors open']},
  nonprofit:{label:'Nonprofit',help:['Donor, grant and sponsor email answered fast, with thank-yous drafted','Volunteer and event sign-ups organized before deadlines','Posts that share your impact and bring in support']},
- coffee:{label:'Coffee shop',help:['Contractor, permit and vendor email tracked so opening day stays on schedule','Every quote and invoice in one place, nothing paid twice','Opening buzz on social before the doors open']},
- other:{label:'Other (type your own)',help:['Every inbox watched, money and problems first','Replies written for you to approve','Regular social posts so customers keep finding you']}};
+ realestate:{label:'Real Estate',help:['New deals, offers and lender email first thing every morning','Tenant, property manager and escrow deadlines caught before they slip','Every document and signature request in one list']},
+ food:{label:'Restaurant',help:['Event and group inquiries answered the same day','Deposits and invoices followed up until they are paid','Posts that keep regulars coming back']},
+ other:{label:'Other',help:['Every inbox watched, money and problems first','Replies written for you to approve','Regular social posts so customers keep finding you']}};
 const tl=b=>b.key==='Personal'?'Personal and family':b.type==='other'||!TYPES[b.type]?(b.custom||'Other'):TYPES[b.type].label;
 const API='https://dxuwfxtgjpefmoadwuuu.supabase.co/functions/v1/api';
 let TOKEN=null;try{TOKEN=localStorage.getItem('cc_token')}catch(e){}
