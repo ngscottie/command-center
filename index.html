@@ -167,6 +167,7 @@ async function api(path,body){
 }
 async function ensureAccount(){if(TOKEN)return;const a=await api('/account',{owner:S.owner,partner:S.partner});TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}
 let MB=[];/* connected inboxes from the server */
+let OAUTH={google:false,microsoft:false};
 const sendFrom=()=>MB[0]?.email||'your email';
 let SEED={preparedAt:null,items:[],waiting:[],good:[],stats:{}};
 
@@ -313,11 +314,12 @@ function setup(){
      +'<div class="box"><b>'+(MB.length?'Add another inbox':'Your first inbox')+'</b>'
      +'<label class="sub" for="cEmail" style="display:block;margin-top:10px">Email address</label><input id="cEmail" type="email" autocomplete="email" value="'+esc(C.email||'')+'" placeholder="you@business.com" style="width:100%;margin-top:4px">'
      +(C.det?'<p class="sub" style="margin-top:8px"><b>'+esc(C.det.name)+'</b></p>':'')
+     +(C.det&&C.det.provider==='gmail'&&OAUTH.google?'<div class="row" style="margin-top:10px"><button class="primary" id="gSignIn" style="background:#fff;color:#1f1f1f;border-color:#dadce0;display:flex;gap:10px;align-items:center"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Sign in with Google</button></div><details style="margin-top:6px"><summary>Use an app password instead</summary>':'')
      +(C.det&&C.det.oauth?'<div class="status">Outlook and Hotmail use “Sign in with Microsoft”. That button is coming in the next update. Add your other inboxes now.</div>':
        (C.det&&C.det.app?'<div class="profile" style="margin-top:8px;padding:12px 14px"><b>Get your app password (1 minute)</b><ol style="margin:6px 0 0;padding-left:20px">'+C.det.app.steps.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><a href="'+esc(C.det.app.link)+'" target="_blank" rel="noopener"><button class="small" style="margin-top:8px">Open '+esc(C.det.name.split(' ')[0])+' settings</button></a></div>':'')
        +(C.det?'<label class="sub" for="cPass" style="display:block;margin-top:10px">'+(C.det.app?'App password':'Password')+'</label><input id="cPass" type="password" autocomplete="off" style="width:100%;margin-top:4px">'
          +(C.det.provider==='custom'||C.adv?'<details'+(C.adv?' open':'')+'><summary>Server settings (only if asked)</summary><div class="bizform" style="grid-template-columns:minmax(0,1fr) 90px"><input id="cImap" placeholder="IMAP server" value="'+esc(C.det.guess?.imap||'')+'"><input id="cIport" value="993" aria-label="IMAP port"><input id="cSmtp" placeholder="SMTP server" value="'+esc(C.det.guess?.smtp||'')+'"><input id="cSport" value="465" aria-label="SMTP port"></div></details>':''):''))
-     +'<div class="row"><button class="primary" id="'+(C.det&&!C.det.oauth?'cConnect':'cNext')+'">'+(C.det&&!C.det.oauth?'Connect':'Continue')+'</button>'+(C.det?'<button class="link" id="cReset">Use a different address</button>':'')+'</div></div>'
+     +'<div class="row"><button class="primary" id="'+(C.det&&!C.det.oauth?'cConnect':'cNext')+'">'+(C.det&&!C.det.oauth?'Connect':'Continue')+'</button>'+(C.det?'<button class="link" id="cReset">Use a different address</button>':'')+'</div>'+(C.det&&C.det.provider==='gmail'&&OAUTH.google?'</details>':'')+'</div>'
      +'<p class="sub" style="font-size:13px">Your passwords are encrypted and never shown to anyone. You can remove an inbox anytime.</p>';
   }else if(st===2){
     const opt=Object.entries(TYPES).map(([k,v])=>'<option value="'+k+'">'+v.label+'</option>').join('');
@@ -427,6 +429,11 @@ async function loadState(){
 let pushT;function pushSettings(){clearTimeout(pushT);pushT=setTimeout(()=>{if(!TOKEN)return;
   const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest};
   api('/settings',{owner:S.owner,partner:S.partner,settings:{businesses:S.businesses,app}}).catch(()=>{})},800)}
+async function oauthStart(btn,provider){
+  btn.disabled=true;flash('Opening '+(provider==='google'?'Google':'Microsoft')+'…');
+  try{await ensureAccount();const r=await api('/oauth/start',{provider,email:(S.conn||{}).email||''});location.href=r.url}
+  catch(e){btn.disabled=false;flash(errText(e))}
+}
 async function detectEmail(btn){
   const email=$('#cEmail').value.trim().toLowerCase();if(!email)return flash('Type the email address first.');
   btn.disabled=true;btn.textContent='Checking…';
@@ -568,6 +575,7 @@ document.addEventListener('click',e=>{
   if(b.id==='cNext')return detectEmail(b);
   if(b.id==='cConnect')return connectEmail(b);
   if(b.id==='cReset'){S.conn={};save();return render()}
+  if(b.id==='gSignIn')return oauthStart(b,'google');
   if(d.rmmb){api('/disconnect',{id:d.rmmb}).then(loadState);return}
   if(b.id==='lookup')return lookup(b);
   if(d.addsug!==undefined){const x=S.suggest[+d.addsug];if(x)lookup(b,x);return}
@@ -584,7 +592,13 @@ document.addEventListener('change',e=>{
 });
 
 /* ======================= storage ======================= */
-loadState();
+(()=>{const q=new URLSearchParams(location.search);
+  if(q.has('connected')||q.has('oauth_error')){history.replaceState(null,'',location.pathname);
+    if(q.has('connected')){S.conn={};S.setupStep=Math.max(S.setupStep,1);save();setTimeout(()=>flash('✓ '+q.get('connected')+' is connected. Add another, or continue.'),600);
+      if(!(S.suggest||[]).length)setTimeout(()=>api('/discover',{}).then(o=>{S.suggest=(o&&Array.isArray(o.businesses)?o.businesses:[]).filter(x=>x&&x.name).slice(0,8);if(o&&!S.owner&&o.firstName)S.owner=o.firstName;save();render()}).catch(()=>{}),1500)}
+    else setTimeout(()=>flash(q.get('oauth_error')==='access_denied'?'Google sign-in was cancelled. Try again, or use an app password.':'Google sign-in didn’t finish ('+q.get('oauth_error')+'). Try again.'),600);
+  }})();
+loadState().then(()=>TOKEN&&api('/oauth/available',{}).then(o=>{OAUTH=o;render()}).catch(()=>{}));
 render();
 setInterval(()=>{if(TOKEN&&S.setupDone&&!pending)loadState()},300000);
 setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName))render()},60000);
