@@ -197,11 +197,13 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 {
 /* ======================= owner + businesses ======================= */
 const TYPES={
- salon:{label:'Nail salon',help:['Bookings, cancellations and supply orders answered fast, replies ready to approve','New reviews caught the same day, with a thank-you or fix drafted','Weekly posts of your best sets so new clients find you']},
- coffee:{label:'Coffee shop',help:['Contractor, permit and vendor email tracked so opening day stays on schedule','Every quote and invoice in one place, nothing paid twice','Opening buzz on social before the doors open']},
  realestate:{label:'Real estate',help:['New deals, offers and lender email first thing every morning','Tenant, property manager and escrow deadlines caught before they slip','Every document and signature request in one list']},
- food:{label:'Restaurant or bar',help:['Event and group inquiries answered the same day','Deposits and invoices followed up until they are paid','Posts that keep regulars coming back']},
- other:{label:'Other',help:['Every inbox watched, money and problems first','Replies written for you to approve','Regular social posts so customers keep finding you']}};
+ salon:{label:'Beauty or nail salon',help:['Bookings, cancellations and supply orders answered fast, replies ready to approve','New reviews caught the same day, with a thank-you or fix drafted','Weekly posts of your best sets so new clients find you']},
+ food:{label:'Restaurant',help:['Event and group inquiries answered the same day','Deposits and invoices followed up until they are paid','Posts that keep regulars coming back']},
+ nonprofit:{label:'Nonprofit',help:['Donor, grant and sponsor email answered fast, with thank-yous drafted','Volunteer and event sign-ups organized before deadlines','Posts that share your impact and bring in support']},
+ coffee:{label:'Coffee shop',help:['Contractor, permit and vendor email tracked so opening day stays on schedule','Every quote and invoice in one place, nothing paid twice','Opening buzz on social before the doors open']},
+ other:{label:'Other (type your own)',help:['Every inbox watched, money and problems first','Replies written for you to approve','Regular social posts so customers keep finding you']}};
+const tl=b=>b.type==='other'&&b.custom?b.custom:(TYPES[b.type]||TYPES.other).label;
 const API='https://dxuwfxtgjpefmoadwuuu.supabase.co/functions/v1/api';
 let TOKEN=null;try{TOKEN=localStorage.getItem('cc_token')}catch(e){}
 (()=>{const m=location.hash.match(/(?:^#|&)t=([a-f0-9-]{60,})/);if(m){TOKEN=m[1];try{localStorage.setItem('cc_token',TOKEN);const s=JSON.parse(localStorage.getItem('occF')||'{}');s.setupDone=true;localStorage.setItem('occF',JSON.stringify(s))}catch(e){}history.replaceState(null,'',location.pathname)}})();
@@ -344,7 +346,7 @@ function bizEditForm(b){
   const boxes=MB.length?'<div class="sub" style="margin-top:4px">Inboxes for this business</div>'+MB.map(m=>'<label class="addr"><input type="checkbox" data-eaddr="'+esc(m.email)+'"'+((b.addr||[]).includes(m.email)?' checked':'')+'><span class="grow">'+esc(m.email)+'</span></label>').join(''):'';
   return '<div class="box editbiz" role="group" aria-label="Edit '+esc(b.key)+'"><b>Edit '+esc(b.key)+'</b>'
    +'<div class="eform"><label class="sub">Name<input id="eName" value="'+esc(b.key)+'"></label><label class="sub">City<input id="eCity" value="'+esc(b.city||'')+'"></label>'
-   +'<label class="sub">Type<select id="eType">'+opt+'</select></label>'+run+'</div>'
+   +'<label class="sub">Type<select id="eType">'+opt+'</select></label><label class="sub" id="eCustomL"'+(b.type==='other'?'':' hidden')+'>What kind of business<input id="eCustom" value="'+esc(b.custom||'')+'" placeholder="e.g. Auto shop"></label>'+run+'</div>'
    +'<label class="addr" style="border:0"><input type="checkbox" id="eOpen"'+(b.opening?' checked':'')+'><span>Opening soon</span></label>'+boxes
    +'<div class="row" style="margin-top:10px"><button class="primary small" id="eSave">Save changes</button><button class="small" id="eCancel">Cancel</button></div></div>';
 }
@@ -387,18 +389,18 @@ function setup(){
     h+='<h1>Tell us your <em>businesses</em>.</h1><p class="sub">Name and city. We’ll look it up and show you how we’ll help.</p>'
      +(S.suggest&&S.suggest.length?'<div class="box"><b>Found in your email</b><p class="sub">Tap to add.</p><div class="row">'+S.suggest.map((x,i)=>'<button class="small" data-addsug="'+i+'">+ '+esc(x.name)+(x.city?' · '+esc(x.city):'')+'</button>').join('')+'</div></div>':'')
      +'<div class="box"><div class="bizform"><input id="bizName" placeholder="Business name" aria-label="Business name"><input id="bizCity" placeholder="City" aria-label="City">'
-     +'<select id="bizType" aria-label="Type">'+opt+'</select>'
+     +'<select id="bizType" aria-label="Type">'+opt+'</select><input id="bizCustom" placeholder="What kind of business?" aria-label="What kind of business" hidden>'
      +(S.partner?'<select id="bizRun" aria-label="Who runs it">'+people().map(p=>'<option>'+esc(p)+'</option>').join('')+'<option>Both</option></select>':'')
      +'<label class="addr" style="border:0;padding:0"><input type="checkbox" id="bizOpen"><span>Opening soon</span></label>'
      +'<button class="primary" id="lookup">Look it up</button></div></div>'
      +'<div id="lookupOut">'+(S.lastLookup?profileCard(S.lastLookup,S.businesses.find(b=>b.key===S.lastLookup.name)):'')+'</div>'
      +'<div class="sect"><h2>Your businesses</h2><span>'+S.businesses.length+'</span></div>'
-     +(S.businesses.length?'<div class="ledger">'+S.businesses.map(b=>'<div class="lrow" style="cursor:default"><span>'+esc(b.key)+'</span><small>'+esc([b.city,TYPES[b.type]?.label,b.opening?'opening soon':'',S.partner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt"><button class="link" data-editbiz="'+esc(b.key)+'">Edit</button> <button class="link" data-showprof="'+esc(b.key)+'">'+(S.showProf===b.key?'Hide':'View')+'</button> <button class="link" style="color:var(--muted)" data-rmbiz="'+esc(b.key)+'">Remove</button></span></div>'+(EDIT===b.key?bizEditForm(b):'')).join('')+'</div>':'<p class="sub">None yet. Add your first one above.</p>')
+     +(S.businesses.length?'<div class="ledger">'+S.businesses.map(b=>'<div class="lrow" style="cursor:default"><span>'+esc(b.key)+'</span><small>'+esc([b.city,tl(b),b.opening?'opening soon':'',S.partner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt"><button class="link" data-editbiz="'+esc(b.key)+'">Edit</button> <button class="link" data-showprof="'+esc(b.key)+'">'+(S.showProf===b.key?'Hide':'View')+'</button> <button class="link" style="color:var(--muted)" data-rmbiz="'+esc(b.key)+'">Remove</button></span></div>'+(EDIT===b.key?bizEditForm(b):'')).join('')+'</div>':'<p class="sub">None yet. Add your first one above.</p>')
      +'<div id="profOut">'+(S.showProf?profileCard(S.profiles[S.showProf],S.businesses.find(b=>b.key===S.showProf)):'')+'</div>';
   }else{
     const n=MB.length;
     h+='<h1>You’re all set, <em>'+esc(S.owner||'friend')+'</em>.</h1><p class="sub">'+S.businesses.length+' business'+(S.businesses.length===1?'':'es')+' · '+n+' inbox'+(n===1?'':'es')+'.</p>'
-     +'<div class="ledger">'+S.businesses.map(b=>'<div class="lrow" style="cursor:default"><span>'+esc(b.key)+'</span><small>'+esc([TYPES[b.type]?.label,b.city,S.partner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt">✓</span></div>').join('')+'</div>'
+     +'<div class="ledger">'+S.businesses.map(b=>'<div class="lrow" style="cursor:default"><span>'+esc(b.key)+'</span><small>'+esc([tl(b),b.city,S.partner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt">✓</span></div>').join('')+'</div>'
      +'<div class="box"><b>Every morning from now on</b><p class="sub" style="margin-top:4px">Your briefing is ready when you wake up: the money first, then the problems, each with the reply already written.</p></div>';
   }
   h+='<div class="nav"><button id="back"'+(st===0?' disabled':'')+'>Back</button>'+(st<STEPS.length-1?'<button class="primary" id="next">Continue</button>':'<button class="primary" id="finish">Prepare my first briefing</button>')+'</div></div>';
@@ -522,20 +524,21 @@ async function connectEmail(btn){
 async function lookup(btn,pre){
   const name=pre?pre.name:$('#bizName').value.trim(),city=pre?(pre.city||''):$('#bizCity').value.trim();
   const type=pre?(TYPES[pre.type]?pre.type:'other'):$('#bizType').value,opening=pre?false:$('#bizOpen').checked;
+  const custom=type==='other'?(pre?'':($('#bizCustom')?.value||'').trim()):'';const tlab=custom||TYPES[type].label;
   const runBy=pre?(S.owner||'Me'):($('#bizRun')?.value||S.owner||'Me');
   if(!name)return flash('Type the business name first.');
   btn.disabled=true;btn.textContent='Looking it up…';
   let prof;
   try{
     await ensureAccount();
-    const o=await api('/lookup',{name,city,typeLabel:TYPES[type].label,opening,help:TYPES[type].help});
+    const o=await api('/lookup',{name,city,typeLabel:tlab,opening,help:TYPES[type].help});
     
     prof={...o,name:o.name||name,loc:o.loc||city};
-  }catch(e){prof={name,loc:city,what:TYPES[type].label.toLowerCase(),summary:name+' is part of what you’re building'+(city?' in '+city:'')+'.',love:[],help:TYPES[type].help,note:'We’ll learn more from your email'};}
+  }catch(e){prof={name,loc:city,what:tlab.toLowerCase(),summary:name+' is part of what you’re building'+(city?' in '+city:'')+'.',love:[],help:TYPES[type].help,note:'We’ll learn more from your email'};}
   const key=prof.name;
   const addr=pre?(pre.addr||[]):[];
   const b=S.businesses.find(x=>x.key===key);
-  if(b)Object.assign(b,{city:city||b.city,type,opening,runBy});else S.businesses.push({key,city:city||prof.loc||'',what:prof.what||TYPES[type].label,type,opening,runBy,addr});
+  if(b)Object.assign(b,{city:city||b.city,type,custom,opening,runBy});else S.businesses.push({key,city:city||prof.loc||'',what:prof.what||tlab,type,custom,opening,runBy,addr});
   S.profiles[key]=prof;S.lastLookup=prof;S.showProf=null;
   if(pre)S.suggest=S.suggest.filter(x=>x!==pre);
   save();render();
@@ -611,6 +614,10 @@ document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
 /* ======================= events ======================= */
+document.addEventListener('change',e=>{
+  if(e.target.id==='bizType'){const c=$('#bizCustom');c.hidden=e.target.value!=='other';if(!c.hidden)c.focus()}
+  if(e.target.id==='eType'){const c=$('#eCustomL');c.hidden=e.target.value!=='other';if(!c.hidden)$('#eCustom').focus()}
+});
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const d=b.dataset;
   if(b.id==='pres'){S.pres=!S.pres;if(S.pres&&S.biz==='Personal')S.biz=null;save();return render()}
@@ -648,9 +655,12 @@ document.addEventListener('click',e=>{
   if(b.id==='eSave'){const bz=S.businesses.find(x=>x.key===EDIT);if(!bz){EDIT=null;return render()}
     const name=$('#eName').value.trim();if(!name)return flash('The business needs a name.');
     if(name!==bz.key&&S.businesses.some(x=>x.key===name))return flash('You already have a business with that name.');
-    const type=$('#eType').value,old=bz.key;
-    if(bz.what===(TYPES[bz.type]?.label||'')||!bz.what||type!==bz.type)bz.what=TYPES[type].label;
-    if(type!==bz.type&&S.profiles[old])S.profiles[old]={...S.profiles[old],what:TYPES[type].label.toLowerCase(),help:TYPES[type].help};
+    const type=$('#eType').value,old=bz.key,custom=type==='other'?($('#eCustom')?.value||'').trim():'';
+    if(type==='other'&&!custom)return flash('Type what kind of business it is.');
+    const nl=custom||TYPES[type].label,changed=type!==bz.type||custom!==(bz.custom||'');
+    if(changed||!bz.what||bz.what===tl(bz))bz.what=nl;
+    if(changed&&S.profiles[old])S.profiles[old]={...S.profiles[old],what:nl.toLowerCase(),help:TYPES[type].help};
+    bz.custom=custom;
     Object.assign(bz,{key:name,city:$('#eCity').value.trim(),type,opening:$('#eOpen').checked,runBy:$('#eRun')?.value||bz.runBy,addr:[...document.querySelectorAll('[data-eaddr]')].filter(x=>x.checked).map(x=>x.dataset.eaddr)});
     if(name!==old){if(S.profiles[old]){S.profiles[name]={...S.profiles[old],name};delete S.profiles[old]}if(S.biz===old)S.biz=name;if(S.showProf===old)S.showProf=name;if(S.lastLookup?.name===old)S.lastLookup=null}
     EDIT=null;save();if(S.setupDone)pushSettings();render();return flash('✓ '+name+' updated. Your next briefing will use it.')}
