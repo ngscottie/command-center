@@ -177,6 +177,7 @@ body{overscroll-behavior-y:contain}
 .urgent .uitem{background:var(--card);border-radius:10px;padding:10px 12px;margin-top:8px}.urgent .uitem .title{font-weight:700}
 button.stat{display:block;width:100%;text-align:left;min-height:0;padding:10px 12px;border-radius:14px;font-weight:400;cursor:pointer}
 button.stat:active{transform:scale(.98)}
+.topr{display:flex;gap:6px;align-items:center}.lang{min-height:36px;padding:0 10px;font-size:13px;border-radius:99px;font-weight:800;letter-spacing:.04em}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -209,11 +210,12 @@ button.stat:active{transform:scale(.98)}
 <body>
 <div class="top">
   <div class="brand"><span id="ownerName">Your</span> Command Center</div>
-  <div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div>
+  <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
+<script src="vi.js"></script>
 <div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
@@ -254,10 +256,11 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem('occF',JSON.stringify(S))}catch(e){};pushSettings()},500)};
 try{const r=localStorage.getItem('occF');if(r)S={...S,...JSON.parse(r)}}catch(e){}
+const LOC=()=>S.lang==='vi'?'vi-VN':undefined;
 const money=n=>'$'+Math.round(n).toLocaleString();
 const mask=t=>S.pres?String(t??'').replace(/\$\s?\d[\d,]*(\.\d+)?/g,'$•••'):String(t??'');
 const visible=list=>S.pres?list.filter(i=>!i.private&&i.biz!=='Personal'):list;
-const hourLabel=h=>{const d=new Date();d.setHours(h,0,0,0);return d.toLocaleTimeString([], {hour:'numeric'})};
+const hourLabel=h=>{const d=new Date();d.setHours(h,0,0,0);return d.toLocaleTimeString(LOC(), {hour:'numeric'})};
 
 /* ======================= the day, in four blocks (owner can change the hours in Setup) =======================
    before blocks.opp            Opportunities   money first: bookings, deposits, leads
@@ -300,7 +303,7 @@ function card(it,n){
   return h+'</div></article>';
 }
 const goodList=g=>'<div class="mini">'+g.map(x=>'<div class="good"><div class="dot">✓</div><div><b>'+esc(mask(x.title))+'</b><span>'+esc(mask(x.text))+'</span></div></div>').join('')+'</div>';
-const fmtTime=d=>new Date(d).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const fmtTime=d=>new Date(d).toLocaleString(LOC(), {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
 
 /* ======================= business ledger ======================= */
 function ledger(all){
@@ -310,11 +313,11 @@ function ledger(all){
   return '<aside class="side" id="bizlist"><h3>Your businesses <span>'+biz.length+'</span></h3><div class="ledger"><button class="lrow '+(!S.biz?'on':'')+'" data-biz=""><span>All businesses</span><small>'+all.filter(i=>!S.done[i.id]).length+' open across everything</small><span class="cnt"><b>'+all.filter(i=>!S.done[i.id]).length+'</b>open</span></button>'+rows+'<button class="ladd" data-editbiz="__new">+ Add a business</button></div>'
    +'<p class="note">Tap a business to see only its items. Tap the pencil to change it.</p>'
    +'<h3 style="margin-top:20px">Your inboxes <span>'+MB.length+'</span></h3><div class="ledger">'
-   +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
+   +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
      +('<button class="ledit" data-delmb="'+esc(m.id)+'" aria-label="Remove '+esc(m.email)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>').join('')
    +'<button class="ladd" id="addInbox">+ Add an inbox</button></div>'
    +'<h3 style="margin-top:20px">Your group chats <span>'+CH.length+'</span></h3><div class="ledger">'
-   +CH.map(c=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(APPS[c.app]?.name||c.app)+(c.name?' · '+esc(c.name):'')+'</span><small>'+(c.status==='ok'?'✓ Connected'+(c.last_sync?' · checked '+new Date(c.last_sync).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
+   +CH.map(c=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(APPS[c.app]?.name||c.app)+(c.name?' · '+esc(c.name):'')+'</span><small>'+(c.status==='ok'?'✓ Connected'+(c.last_sync?' · checked '+new Date(c.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
      +'<button class="ledit" data-delchat="'+esc(c.id)+'" aria-label="Remove '+esc(APPS[c.app]?.name||c.app)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button></div>').join('')
    +'<button class="ladd" id="addChat">+ Connect a group chat</button></div>'
    +'<p class="note">Messages from your group chats are read with your email and show up in the same briefing.</p></aside>';
@@ -331,10 +334,10 @@ function home(){
   const oppMoney=all.filter(i=>i.cat==='opp'&&!S.done[i.id]).reduce((a,i)=>a+(i.value||0),0);
   const stats='<div class="stats"><button class="stat hero" id="needToday" aria-label="See everything that needs you today"><small>Need you today ›</small><b>'+all.filter(i=>!S.done[i.id]).length+'</b></button>'
    +'<button class="stat money" data-view="opp" aria-label="See your leads"><small>Money waiting on you ›</small><b>'+mask(money(oppMoney))+'</b></button>'
-   +'<div class="stat money"><small>Your time saved ('+hours.toFixed(1)+' h)</small><b>'+mask(money(hours*S.hourValue))+'</b></div></div>'
+   +'<button class="stat money" id="hourBtn" aria-label="Change what an hour of your time is worth"><small>Your time saved ('+hours.toFixed(1)+' h) ›</small><b>'+mask(money(hours*S.hourValue))+'</b></button></div>'
    +'<div class="row jump"><button class="small" id="jumpBiz">'+(S.biz?esc(S.biz)+' \u00b7 change':'Your '+S.businesses.length+' businesses \u2193')+'</button>'+(S.biz?'<button class="link" data-biz="">Show all</button>':'')+'</div>';
   let main='<div class="status" id="status" hidden></div>';
-  if(URGENT&&URGENT.items.length)main+='<section class="urgent" aria-label="Needs you now"><div class="uhead"><b>Needs you now</b><button class="link" id="urgentOk">Got it</button></div>'+URGENT.items.map(u=>'<div class="uitem"><span class="tag b">'+esc(u.biz||'')+'</span><div class="title">'+esc(mask(u.title))+'</div>'+(u.why?'<p class="why">'+esc(mask(u.why))+'</p>':'')+'</div>').join('')+'<p class="sub" style="font-size:12.5px;margin:6px 0 0">Checked '+new Date(URGENT.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'. Everything else will be in your next briefing.</p></section>';
+  if(URGENT&&URGENT.items.length)main+='<section class="urgent" aria-label="Needs you now"><div class="uhead"><b>Needs you now</b><button class="link" id="urgentOk">Got it</button></div>'+URGENT.items.map(u=>'<div class="uitem"><span class="tag b">'+esc(u.biz||'')+'</span><div class="title">'+esc(mask(u.title))+'</div>'+(u.why?'<p class="why">'+esc(mask(u.why))+'</p>':'')+'</div>').join('')+'<p class="sub" style="font-size:12.5px;margin:6px 0 0">Checked '+new Date(URGENT.at).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'})+'. Everything else will be in your next briefing.</p></section>';
   const list=k=>scoped.filter(i=>i.cat===k);
   const later=(k,label)=>{const n=list(k).filter(i=>!S.done[i.id]).length;return n?'<div class="locked"><b>'+n+' '+label+'</b>Ready at '+hourLabel(k==='prio'?S.blocks.opp:S.blocks.prio)+'.</div>':''};
   if(S.view==='today'){
@@ -350,7 +353,7 @@ function home(){
      +stats+'<div class="sect"><h2>Accomplishments</h2></div>'+goodList(g)
      +'<div class="calm">Everything else is handled or set for tomorrow morning. Enjoy your evening.</div>';
   }else{
-    const pre='<p class="sub">Updated '+fmtTime(B.preparedAt)+(LAST_CHECK?' · mail checked '+new Date(LAST_CHECK).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')+'. Replies are already written; you just approve.</p>';
+    const pre='<p class="sub">Updated '+fmtTime(B.preparedAt)+(LAST_CHECK?' · mail checked '+new Date(LAST_CHECK).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):'')+'. Replies are already written; you just approve.</p>';
     if(blk==='opp'){
       const o=list('opp'),open=o.filter(i=>!S.done[i.id]);
       main+='<h1>Good morning, '+esc(S.owner)+'. <em>'+(open.length||'No')+' money move'+(open.length===1?'':'s')+'</em> first.</h1>'+pre+stats
@@ -381,7 +384,7 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
-let URGENT=null,EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
+let HOUREDIT=false,URGENT=null,EDIT=null,CONFIRM=null,CHATCONN=null,WAQR=null,WAQR_T=null;
 const ES={};
 addEventListener('message',e=>{try{if(!/(^|\.)facebook\.com$/.test(new URL(e.origin).hostname))return;const d=typeof e.data==='string'?JSON.parse(e.data):e.data;if(d&&d.type==='WA_EMBEDDED_SIGNUP'){if(/^FINISH/.test(d.event||'')){ES.waba=d.data?.waba_id;ES.pid=d.data?.phone_number_id}else if(d.event==='CANCEL')ES.cancel=true}}catch(_){}});
 function fbSdk(appId){return window.FB?Promise.resolve():new Promise((ok,no)=>{window.fbAsyncInit=()=>{FB.init({appId,autoLogAppEvents:true,xfbml:false,version:'v23.0'});ok()};const s=document.createElement('script');s.src='https://connect.facebook.net/en_US/sdk.js';s.async=true;s.crossOrigin='anonymous';s.onerror=no;document.head.appendChild(s)})}
@@ -445,6 +448,12 @@ function chatSheet(){
   else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['whatsapp','groupme','zalo'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
     +'<div class="ibtns one" style="margin-top:14px"><button id="chClose">Close</button></div>';
   return h+'</div></div>';
+}
+function hourSheet(){
+  return '<div class="isheet" id="hrSheet" role="dialog" aria-modal="true" aria-labelledby="hrTitle"><div class="ibox"><b id="hrTitle" style="font-size:18px">What’s an hour of your time worth?</b>'
+   +'<p class="sub">We use it to show what your assistant saves you each day.</p>'
+   +'<label class="sub" for="hrIn" style="display:block">Dollars per hour</label><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><b style="font-size:20px">$</b><input id="hrIn" type="number" inputmode="decimal" min="5" max="5000" step="5" value="'+(S.hourValue||75)+'" style="width:100%"></div>'
+   +'<div class="ibtns" style="margin-top:14px"><button id="hrNo">Cancel</button><button class="primary" id="hrYes">Save</button></div></div></div>';
 }
 function confirmSheet(c){
   const what=c.kind==='biz'?'<p class="sub">This removes <b>'+esc(c.label)+'</b> from your businesses. Its emails will be filed under your other businesses or Personal from the next briefing on.</p>'
@@ -528,10 +537,12 @@ function render(){
   renderBlocks();
   $('#pres').classList.toggle('on',S.pres);$('#pres').setAttribute('aria-pressed',S.pres);
   $('#setupBtn').classList.toggle('on',route==='setup');
-  $('#ownerName').textContent=S.owner?S.owner+'’s':'Your';document.title=(S.owner?S.owner+'’s ':'')+'Command Center';
+  if(S.lang==='vi'){$('.brand').innerHTML='Trung tâm điều hành <span id="ownerName">'+(S.owner?'của '+esc(S.owner):'của bạn')+'</span>';document.title='Trung tâm điều hành'+(S.owner?' của '+S.owner:'')}
+  else{$('.brand').innerHTML='<span id="ownerName">'+(S.owner?esc(S.owner)+'’s':'Your')+'</span> Command Center';document.title=(S.owner?S.owner+'’s ':'')+'Command Center'}
+  $('#langBtn').textContent=S.lang==='vi'?'EN':'VI';document.documentElement.lang=S.lang==='vi'?'vi':'en';
   $('#app').innerHTML=route==='setup'?setup():home();
-  const md=$('#modal'),want=CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:CHATCONN?'ch:'+CHATCONN:(EDIT&&route!=='setup'?EDIT:'');
-  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=CONFIRM?confirmSheet(CONFIRM):CHATCONN?chatSheet():'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
+  const md=$('#modal'),want=CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:CHATCONN?'ch:'+CHATCONN:HOUREDIT?'hour':(EDIT&&route!=='setup'?EDIT:'');
+  if(!want)md.innerHTML='';else if(md.dataset.k!==want||!md.innerHTML)md.innerHTML=CONFIRM?confirmSheet(CONFIRM):CHATCONN?chatSheet():HOUREDIT?hourSheet():'<div class="isheet" id="bizSheet" role="dialog" aria-modal="true" aria-label="Edit business"><div class="ibox">'+bizEditForm(want==='__new'?null:S.businesses.find(x=>x.key===want))+'</div></div>';
   md.dataset.k=want;
 }
 function flash(t){const s=$('#status');if(s){s.textContent=t;s.hidden=!t}else if(t){toast(esc(t));setTimeout(()=>toast(''),5000)}}
@@ -608,9 +619,9 @@ async function loadState(){
   }catch(e){if(e.code==='Sign in first.'){TOKEN=null;try{localStorage.removeItem('cc_token')}catch(_){}}}
   render();
 }
-let pushT;function pushSettings(){clearTimeout(pushT);pushT=setTimeout(()=>{if(!TOKEN)return;
-  const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest,done:S.done,later:S.later,tz:Intl.DateTimeFormat().resolvedOptions().timeZone};
-  api('/settings',{owner:S.owner,partner:S.partner,settings:{businesses:S.businesses,app}}).catch(()=>{})},800)}
+let pushT;function pushSettings(now){clearTimeout(pushT);const go=()=>{if(!TOKEN)return Promise.resolve();
+  const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest,done:S.done,later:S.later,lang:S.lang||'en',tz:Intl.DateTimeFormat().resolvedOptions().timeZone};
+  return api('/settings',{owner:S.owner,partner:S.partner,settings:{businesses:S.businesses,app}}).catch(()=>{})};if(now)return go();pushT=setTimeout(go,800)}
 async function oauthStart(btn,provider){
   btn.disabled=true;flash('Opening '+(provider==='google'?'Google':'Microsoft')+'…');
   try{await ensureAccount();const r=await api('/oauth/start',{provider,email:(S.conn||{}).email||''});location.href=r.url}
@@ -731,6 +742,18 @@ document.addEventListener('submit',e=>{if(e.target.id==='askForm'){e.preventDefa
 document.addEventListener('input',e=>{const k=e.target.dataset.askdraft;if(k)ASK.drafts[k]=e.target.value});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ASK.open){ASK.open=false;askRender()}});
 
+/* ======================= Vietnamese ======================= */
+const NOTR='.title,.why,textarea,input,.ptx,.pt,.a > p,.profile p,.profile li,.profile h3,.good b,.good span,.mrow .grow,.uitem,.notr,script,style';
+function trStr(t,attr){const D=window.CC_VI;if(!D)return null;const k=t.replace(/\s+/g,' ').trim();if(!k)return null;
+  if(attr&&D.exact['@'+k]!==undefined)return D.exact['@'+k];if(D.exact[k]!==undefined)return t.replace(t.trim(),D.exact[k]);
+  for(const [re,r] of D.patterns){if(re.test(k))return t.replace(t.trim(),k.replace(re,r))}return null}
+function trNode(n){if(S.lang!=='vi')return;
+  if(n.nodeType===3){const p=n.parentElement;if(!p||p.closest(NOTR))return;const r=trStr(n.nodeValue);if(r!==null&&r!==n.nodeValue)n.nodeValue=r;return}
+  if(n.nodeType!==1||n.closest(NOTR.replace(',input','')))return;
+  for(const el of [n,...n.querySelectorAll('[placeholder],[aria-label],[title]')])for(const a of ['placeholder','aria-label','title']){const v=el.getAttribute&&el.getAttribute(a);if(v){const r=trStr(v,true);if(r!==null&&r!==v)el.setAttribute(a,r)}}
+  const tw=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;const list=[];while(t=tw.nextNode())list.push(t);list.forEach(trNode)}
+if(S.lang==='vi'){addEventListener('DOMContentLoaded',()=>trNode(document.body));new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')trNode(m.target);else m.addedNodes.forEach(trNode)}}).observe(document.documentElement,{childList:true,subtree:true,characterData:true})}
+
 /* ======================= pull down to check ======================= */
 let QUICK_BUSY=false;
 function pendingCount(){return (B.items||[]).filter(i=>!S.done[i.id]&&!S.later[i.id]).length}
@@ -751,8 +774,8 @@ let PTR_T;function ptrShow(t,spin,hideAfter){const el=$('#ptr');el.innerHTML=(sp
 })();
 
 /* ======================= events ======================= */
-document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='chSheet'){if(WAQR&&WAQR.status!=='connected'){const w=WAQR;api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{})}waStop();WAQR=null;CHATCONN=null;render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
+document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='hrSheet'){HOUREDIT=false;render()}if(e.target.id==='chSheet'){if(WAQR&&WAQR.status!=='connected'){const w=WAQR;api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{})}waStop();WAQR=null;CHATCONN=null;render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='hrIn')$('#hrYes')?.click();if(e.key==='Escape'){if(HOUREDIT){HOUREDIT=false;render()}if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
 document.addEventListener('input',e=>{if(e.target.id==='cfIn')$('#cfYes').disabled=e.target.value.trim().toUpperCase()!=='DELETE'});
 document.addEventListener('change',e=>{
   if(e.target.id==='bizType'){const c=$('#bizCustom');c.hidden=e.target.value!=='other';if(!c.hidden)c.focus()}
@@ -796,6 +819,10 @@ document.addEventListener('click',e=>{
     api('/disconnect',{id:c.id}).then(()=>{for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==c.label);save();return loadState()}).then(()=>flash(c.label+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
   if(b.id==='needToday'){S.view='today';S.biz=null;save();render();scrollTo({top:0,behavior:'smooth'});return}
   if(b.id==='backDay'){S.view='auto';save();render();scrollTo({top:0,behavior:'smooth'});return}
+  if(b.id==='hourBtn'){HOUREDIT=true;render();setTimeout(()=>{const x=$('#hrIn');x&&(x.focus(),x.select())},50);return}
+  if(b.id==='hrNo'){HOUREDIT=false;return render()}
+  if(b.id==='hrYes'){const v=Math.round(Number($('#hrIn').value));if(!(v>=5&&v<=5000)){$('#hrIn').focus();return}S.hourValue=v;HOUREDIT=false;save();render();return flash('✓ Your time is now valued at $'+v+' an hour.')}
+  if(b.id==='langBtn'){S.lang=S.lang==='vi'?'en':'vi';try{localStorage.setItem('occF',JSON.stringify(S))}catch(_){}b.disabled=true;Promise.resolve(TOKEN&&S.setupDone?pushSettings(true):null).finally(()=>location.reload());return}
   if(b.id==='urgentOk'){URGENT=null;return render()}
   if(b.id==='addChat'){CHATCONN='pick';return render()}
   if(d.chapp){CHATCONN=d.chapp;render();setTimeout(()=>$('#chTok')?.focus(),50);return}
