@@ -384,7 +384,7 @@ async function waPoll(){if(!WAQR)return waStop();try{const r=await api('/chats/w
   if(r.status==='connected'){waStop();loadState()}
   if(r.status==='logged_out'){waStop();WAQR=null;CHATCONN='whatsapp_qr';render();return flash('That link didn’t finish. Try again.')}
   if(prev!==WAQR.qr+WAQR.status||WAQR.noWorker)waPaint()}catch(e){}}
-const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp Business',live:true,note:'Customer messages to your WhatsApp Business number.'},whatsapp_qr:{name:'WhatsApp',live:true,note:'Scan a code with your phone, like WhatsApp Web. Reads your chats and groups.'},demo:{name:'Zalo (sample)',live:false}};
+const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp Business',live:true,note:'The official, safe way: customer messages to your WhatsApp Business number.'},whatsapp_qr:{name:'WhatsApp',live:true,note:'Scan a code with your phone, like WhatsApp Web. Reads your chats and groups.'},demo:{name:'Zalo (sample)',live:false}};
 function chatSheet(){
   const a=CHATCONN;
   let h='<div class="isheet" id="chSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="ibox"><b id="chTitle" style="font-size:18px">Connect a group chat</b>';
@@ -397,7 +397,7 @@ function chatSheet(){
     +'<input id="chPid" placeholder="Phone number ID" inputmode="numeric" autocomplete="off" style="width:100%;margin-bottom:8px"><input id="chTok" placeholder="Access token" autocomplete="off" spellcheck="false" style="width:100%">'
     +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">New customer messages to your WhatsApp Business number show up in your briefing. Nothing is sent without you.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect WhatsApp</button></div>';
-  else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['whatsapp_qr','groupme','zalo'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
+  else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['whatsapp','groupme','zalo'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
     +'<div class="ibtns one" style="margin-top:14px"><button id="chClose">Close</button></div>';
   return h+'</div></div>';
 }
