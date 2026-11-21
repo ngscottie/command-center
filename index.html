@@ -29,7 +29,7 @@ button:disabled{opacity:.55;cursor:default}
 input,select{border:1px solid var(--line);background:var(--card);border-radius:10px;min-height:44px;padding:0 12px;font-size:16px}
 :is(button,textarea,input,select,a):focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .top{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px max(3vw,14px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
-.brand{font-weight:800;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand span{color:var(--red)}
+.brand{font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand span{color:var(--red)}
 .tools[hidden]{display:none}.tools{display:flex;gap:6px;align-items:center;flex:none}
 .tools button{min-height:34px;font-size:13px;font-weight:600;padding:0 10px}
 .tools button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -136,6 +136,9 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 .askbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 16px 16px;border-top:1px solid var(--line);background:var(--card)}
 .askbar input{width:100%}
 .thinking{color:var(--muted);font-size:14px;margin:10px 2px}
+@media(max-width:480px){.top{padding:10px 12px}.brand{font-size:13.5px;letter-spacing:.02em}.tools{gap:4px}.tools button{padding:0 8px;font-size:12px;min-height:32px}}
+@media(max-width:400px){.brand{font-size:12.5px;letter-spacing:.01em}}
+.credit{text-align:center;font-size:12px;color:var(--muted);padding:6px 16px 90px;letter-spacing:.02em}.credit b{color:var(--ink);font-weight:700}
 @media(prefers-reduced-motion:reduce){body{transition:none}}
 </style>
 </head>
@@ -146,6 +149,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
+<footer class="credit">Powered by <b>SCTT Technicals</b></footer>
 <div id="ask"></div>
 <div id="toast"></div>
 <script>
