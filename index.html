@@ -606,7 +606,7 @@ document.addEventListener('change',e=>{
 loadState().then(()=>TOKEN&&api('/oauth/available',{}).then(o=>{OAUTH=o;render()}).catch(()=>{}));
 render();
 setInterval(()=>{if(TOKEN&&S.setupDone&&!pending)loadState()},300000);
-setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName))render()},60000);
+setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!document.querySelector('#refresh[disabled]')&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName))render()},60000);
 }
 </script>
 
