@@ -163,6 +163,7 @@ const TYPES={
  other:{label:'Other',help:['Every inbox watched, money and problems first','Replies written for you to approve','Regular social posts so customers keep finding you']}};
 const API='https://dxuwfxtgjpefmoadwuuu.supabase.co/functions/v1/api';
 let TOKEN=null;try{TOKEN=localStorage.getItem('cc_token')}catch(e){}
+(()=>{const m=location.hash.match(/(?:^#|&)t=([a-f0-9-]{60,})/);if(m){TOKEN=m[1];try{localStorage.setItem('cc_token',TOKEN);const s=JSON.parse(localStorage.getItem('occF')||'{}');s.setupDone=true;localStorage.setItem('occF',JSON.stringify(s))}catch(e){}history.replaceState(null,'',location.pathname)}})();
 async function api(path,body){
   const r=await fetch(API+path,{method:'POST',headers:{'content-type':'application/json',...(TOKEN?{'x-cc-token':TOKEN}:{})},body:JSON.stringify(body||{})});
   const j=await r.json().catch(()=>({error:'server_error'}));
