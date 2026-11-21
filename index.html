@@ -266,21 +266,46 @@ button.primary:hover{background:#b14707}
 .card.flash{outline-color:var(--hot)}
 .credit b{color:var(--red)}
 .brand{color:var(--red)}
+
+/* packages */
+.toolsHead{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin:18px 2px 8px}
+.fold.tool>summary{border-left:4px solid var(--hot)}
+.tbody{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.tbody h4{font-size:13.5px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.xi{border-bottom:1px solid var(--line);padding:10px 0}.xi:last-of-type{border-bottom:0}.xi.hot{background:linear-gradient(90deg,var(--glow),transparent);margin:0 -12px;padding:10px 12px;border-left:4px solid var(--hot)}
+.xi b{display:block;line-height:1.35}.xi p{margin:4px 0;font-size:14px}.xi .act{font-weight:700;color:var(--red)}.xi .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:12px}
+.xi .quote{font-style:italic}.okline{color:var(--ok);font-weight:700;font-size:14px}
+.xlink{color:var(--red);font-weight:700;font-size:13.5px;cursor:pointer;text-decoration:underline;display:inline-block;margin-top:2px}
+.xdraft{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:14.5px;background:#fff;margin-top:6px}
+.xbtns{gap:10px;align-items:center;margin-top:6px}
+.xrow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px}.xrow small{display:block;color:var(--muted);font-size:12.5px}.xrow.lowrow b{color:var(--hot)}
+.xdel{min-height:28px;font-size:20px;color:var(--muted)!important;padding:0 4px}
+.xform{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.xform input,.xform select{min-height:40px;font-size:15px;width:100%}.xform button{grid-column:1/-1}
+.sub.xs{font-size:13px;margin:6px 0}
+.tag.hotg{background:var(--hot);color:#fff}.stars{color:var(--hot);letter-spacing:1px;font-size:14px}.stars i{color:var(--line);font-style:normal}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pstats div{background:var(--glow);border-radius:10px;padding:8px}.pstats small{display:block;font-size:11.5px;color:var(--muted)}.pstats b{font-size:17px}.okc{color:var(--ok)}
+.tchip{background:var(--glow)!important;color:var(--red)!important;border-color:#efc9a3!important}
+.pkrow{display:flex;width:100%;text-align:left;gap:12px;align-items:center;padding:12px;margin-bottom:8px;border-radius:14px;min-height:64px;font-weight:400}
+.pkrow b{display:block;font-size:15.5px}.pkrow small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.pkrow.on{border-color:var(--hot);background:var(--glow)}
+.sw{flex:none;width:46px;height:28px;border-radius:99px;background:var(--line);position:relative;transition:.2s}.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+.pkrow.on .sw{background:var(--hot)}.pkrow.on .sw i{left:21px}
 </style>
 </head>
 <body>
 <div class="top">
   <div class="brand">Summi<span id="ownerName"></span></div>
-  <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="refreshBtn" class="lang rf" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
+  <div class="topr"><div class="tools"><button id="pkOpen">Packages</button><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="refreshBtn" class="lang rf" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
-<script src="vi.js?v=9"></script>
+<script src="vi.js?v=10"></script>
 <div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
 <div id="queue"></div>
+<div id="pk"></div>
 <div id="toast"></div>
 <script>
 {
@@ -402,8 +427,121 @@ function ledger(all){
    +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
      +('<button class="ledit" data-delmb="'+esc(m.id)+'" aria-label="Remove '+esc(m.email)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>').join('')
    +'<button class="ladd" id="addInbox">+ Add an inbox</button></div></details>'
-   +'</aside>';
+   +tools()+'</aside>';
 }
+
+/* ======================= packages: five add-on tools ======================= */
+const PKG=[
+ {k:'paper',name:'Paperwork Guard',desc:'English letters explained in plain words. License and deadline reminders.'},
+ {k:'reviews',name:'Review Shield',desc:'New reviews with a reply ready. Bad ones come first.'},
+ {k:'chairs',name:'Empty Chair Catcher',desc:'Cancellations and no-shows, with a text ready to fill the chair.'},
+ {k:'profit',name:'Profit Check',desc:'Sales and supplier costs from your email, and which services earn least per hour.'},
+ {k:'team',name:'Team Desk',desc:'Job applicants with replies ready, staff licenses and birthdays, job posts.'}];
+const pkOn=k=>!(S.pkgs&&S.pkgs[k]===false);
+const EX=()=>(B&&B.extras)||{};
+let PKSHEET=false,JOBPOST=null;
+const daysTo=d=>{if(!d)return null;const t=new Date(String(d).slice(0,10)+'T12:00:00');return isNaN(t)?null:Math.round((t-new Date())/864e5)};
+const dueTag=n=>n===null?'':'<span class="tag '+(n<=30?'hotg':'am')+'">'+(n<0?(-n)+' days late':n===0?'Due today':n+' days left')+'</span>';
+const fmtD=d=>{const t=new Date(String(d).slice(0,10)+'T12:00:00');return isNaN(t)?esc(d):t.toLocaleDateString(LOC(),{month:'short',day:'numeric',year:'numeric'})};
+const seeMail=ref=>ref?'<span class="xlink" data-msg="'+ref+'" role="button" tabindex="0">See the email</span>':'';
+const xbox=(key,text,btns)=>'<textarea class="xdraft" data-xdraft="'+esc(key)+'" rows="3">'+esc((S.xd&&S.xd[key])??text??'')+'</textarea><div class="row xbtns">'+btns+'</div>';
+function deadlines(){
+  const out=[];
+  for(const p of EX().paper||[])if(p.due)out.push({what:(p.agency?p.agency+': ':'')+p.title,due:p.due,n:daysTo(p.due),ref:p.ref});
+  (S.licenses||[]).forEach((l,i)=>out.push({what:l.who+' · '+l.kind,due:l.exp,n:daysTo(l.exp),lic:i}));
+  for(const s of S.staff||[])if(s.lic)out.push({what:s.name+' · Technician license',due:s.lic,n:daysTo(s.lic)});
+  return out.filter(x=>x.n!==null).sort((a,b)=>a.n-b.n);
+}
+function toolAlerts(){
+  const ex=EX(),a={};
+  if(pkOn('paper'))a.paper=(ex.paper||[]).filter(p=>p.urgent).length+deadlines().filter(d=>d.n<=30&&!(ex.paper||[]).some(p=>p.urgent&&p.due===d.due)).length;
+  if(pkOn('reviews'))a.reviews=(ex.reviews||[]).filter(r=>r.stars&&r.stars<=3&&!S.done['rv_'+r.ref]).length;
+  if(pkOn('chairs'))a.chairs=(ex.chairs||[]).filter(c=>!S.done['ch_'+c.ref+c.when]).length;
+  if(pkOn('profit'))a.profit=(ex.profit?.alerts||[]).length;
+  if(pkOn('team'))a.team=(ex.team||[]).filter(t=>!S.done['tm_'+t.ref]).length+(S.staff||[]).filter(s=>{const b=bdayIn(s.bday);return b!==null&&b<=7}).length;
+  return a;
+}
+function bdayIn(md){if(!md)return null;const m=String(md).match(/(\d{1,2})-(\d{1,2})$/);if(!m)return null;const now=new Date();let t=new Date(now.getFullYear(),+m[1]-1,+m[2],12);if(t<now&&now-t>864e5)t=new Date(now.getFullYear()+1,+m[1]-1,+m[2],12);return Math.max(0,Math.round((t-now)/864e5))}
+function toolFold(k,title,count,body){
+  const F=S.fold||{},open=F[k]!==undefined?F[k]:false;
+  return '<details class="fold tool" data-fold="'+k+'"'+(open?' open':'')+'><summary><b>'+title+'</b><span class="fsum'+(count?' bad':'')+'">'+(count?count+' need you':'All clear')+'</span></summary><div class="tbody">'+body+'</div></details>';
+}
+function tools(){
+  if(!B||!B.preparedAt)return '';
+  const ex=EX(),al=toolAlerts();let h='';
+  if(pkOn('paper')){
+    const L=(ex.paper||[]).slice().sort((a,b)=>(b.urgent?1:0)-(a.urgent?1:0));
+    let b=L.length?L.map(p=>'<div class="xi'+(p.urgent?' hot':'')+'"><div class="meta">'+(p.agency?'<span class="tag b">'+esc(p.agency)+'</span>':'')+dueTag(daysTo(p.due))+'</div><b>'+esc(mask(p.title))+'</b><p>'+esc(mask(p.plain||''))+'</p>'+(p.action?'<p class="act">Next: '+esc(mask(p.action))+'</p>':'')+seeMail(p.ref)+'</div>').join(''):'<p class="sub xs">No government or official letters in the last 3 days.</p>';
+    const D=deadlines();
+    b+='<h4>Deadlines and licenses</h4>'+(D.length?D.map(d=>'<div class="xrow"><span class="grow">'+esc(d.what)+'<small>'+fmtD(d.due)+'</small></span>'+dueTag(d.n)+(d.lic!==undefined?'<button class="link xdel" data-dellic="'+d.lic+'" aria-label="Remove">×</button>':'')+'</div>').join(''):'<p class="sub xs">Add the salon license, each technician’s license, insurance and lease dates. Summi reminds you 90, 30 and 7 days before.</p>')
+     +'<div class="xform"><input id="licWho" placeholder="Whose (salon or person)"><select id="licKind"><option>Salon license</option><option>Technician license</option><option>Business license</option><option>Insurance renewal</option><option>Lease renewal</option><option>Seller’s permit</option><option>Other</option></select><input id="licExp" type="date" aria-label="Expires on"><button class="small primary" id="licAdd">Add</button></div>';
+    h+=toolFold('paper','Paperwork Guard',al.paper,b);
+  }
+  if(pkOn('reviews')){
+    const R=(ex.reviews||[]).slice().sort((a,b)=>(a.stars||5)-(b.stars||5));
+    const b=R.length?R.map(r=>{const k='rv_'+r.ref;return '<div class="xi'+(r.stars&&r.stars<=3?' hot':'')+'"><div class="meta"><span class="tag b">'+esc(r.site||'Review')+'</span>'+(r.stars?'<span class="stars">'+'★'.repeat(Math.round(r.stars))+'<i>'+'★'.repeat(5-Math.round(r.stars))+'</i></span>':'')+(r.biz?'<span class="tag b">'+esc(r.biz)+'</span>':'')+'</div><p class="quote">“'+esc(mask(r.text||''))+'”'+(r.who?' <small>— '+esc(mask(r.who))+'</small>':'')+'</p>'+(S.done[k]?'<p class="okline">✓ Reply copied</p>':xbox(k,r.reply,'<button class="small primary" data-xcopy="'+k+'">Copy reply</button>'+seeMail(r.ref)))+'</div>'}).join(''):'<p class="sub xs">No new reviews in the last 3 days. Turn on review emails in Google Business Profile and Yelp so Summi sees them.</p>';
+    h+=toolFold('reviews','Review Shield',al.reviews,b);
+  }
+  if(pkOn('chairs')){
+    const C=ex.chairs||[];
+    const b=C.length?C.map(c=>{const k='ch_'+c.ref+c.when;return '<div class="xi"><div class="meta"><span class="tag hotg">'+esc(c.kind==='noshow'?'No-show':c.kind==='reschedule'?'Rescheduled':'Cancelled')+'</span>'+(c.biz?'<span class="tag b">'+esc(c.biz)+'</span>':'')+'</div><b>'+esc(c.when||'')+(c.service?' · '+esc(c.service):'')+'</b>'+(c.who?'<p>'+esc(mask(c.who))+'</p>':'')+(S.done[k]?'<p class="okline">✓ Text copied</p>':xbox(k,c.text,'<button class="small primary" data-xcopy="'+k+'">Copy text for regulars</button>'+seeMail(c.ref)))+'</div>'}).join(''):'<p class="sub xs">No cancellations or no-shows found. Summi reads the emails your booking app sends you (Booksy, Vagaro, Square, Fresha).</p>';
+    h+=toolFold('chairs','Empty Chair Catcher',al.chairs,b);
+  }
+  if(pkOn('profit')){
+    const P=ex.profit||{},sales=(P.sales||[]),costs=(P.costs||[]);
+    const ts=sales.reduce((a,x)=>a+(x.amount||0),0),tc=costs.reduce((a,x)=>a+(x.amount||0),0);
+    let b='<div class="pstats"><div><small>Sales seen</small><b class="okc">'+mask(money(ts))+'</b></div><div><small>Costs seen</small><b>'+mask(money(tc))+'</b></div><div><small>Costs as % of sales</small><b>'+(ts?Math.round(tc/ts*100)+'%':'—')+'</b></div></div><p class="sub xs">From sales summaries and supplier bills in your email over the last 3 days.</p>';
+    if((P.alerts||[]).length)b+=(P.alerts.map(a=>'<div class="xi hot"><b>'+esc(mask(a.text))+'</b>'+seeMail(a.ref)+'</div>').join(''));
+    if(costs.length)b+='<h4>Biggest costs</h4>'+costs.slice().sort((a,c)=>c.amount-a.amount).slice(0,5).map(c=>'<div class="xrow"><span class="grow">'+esc(c.vendor||'')+'<small>'+esc(c.what||'')+'</small></span><b>'+mask(money(c.amount))+'</b></div>').join('');
+    const SV=(S.services||[]).filter(s=>s.price>0&&s.min>0).map(s=>({...s,ph:s.price/s.min*60}));
+    const avg=SV.length?SV.reduce((a,s)=>a+s.ph,0)/SV.length:0;
+    b+='<h4>What each service earns per hour</h4>'+(SV.length?SV.sort((a,c)=>a.ph-c.ph).map((s,i)=>{const low=SV.length>2&&s.ph<avg*0.85;return '<div class="xrow'+(low?' lowrow':'')+'"><span class="grow">'+esc(s.name)+'<small>'+money(s.price)+' · '+s.min+' min'+(low?' · to match your average: '+money(Math.ceil(avg*s.min/60)):'')+'</small></span><b>'+money(s.ph)+'/h</b><button class="link xdel" data-delsvc="'+(S.services||[]).indexOf(S.services.find(x=>x.name===s.name))+'" aria-label="Remove">×</button></div>'}).join('')+(SV.length>2?'<p class="sub xs">Your average is '+money(avg)+' an hour. Services in orange earn noticeably less for the time they take.</p>':''):'<p class="sub xs">Add your services with price and time to see which ones earn least per hour.</p>')
+     +'<div class="xform"><input id="svcName" placeholder="Service (e.g. Gel full set)"><input id="svcPrice" type="number" inputmode="decimal" placeholder="Price $"><input id="svcMin" type="number" inputmode="numeric" placeholder="Minutes"><button class="small primary" id="svcAdd">Add</button></div>';
+    h+=toolFold('profit','Profit Check',al.profit,b);
+  }
+  if(pkOn('team')){
+    const T=ex.team||[];
+    let b=T.length?T.map(t=>{const k='tm_'+t.ref;return '<div class="xi"><div class="meta"><span class="tag ok">Applicant</span>'+(t.biz?'<span class="tag b">'+esc(t.biz)+'</span>':'')+'</div><b>'+esc(mask(t.name||'Someone'))+(t.role?' · '+esc(t.role):'')+'</b>'+(t.note?'<p>'+esc(mask(t.note))+'</p>':'')+(S.done[k]?'<p class="okline">✓ '+esc(S.done[k])+'</p>':xbox(k,t.reply,(t.ref?'<button class="small primary" data-xsend="'+k+'">Approve & send</button>':'<button class="small primary" data-xcopy="'+k+'">Copy reply</button>')+seeMail(t.ref)))+'</div>'}).join(''):'<p class="sub xs">No job applicants in the last 3 days.</p>';
+    const ST=S.staff||[];
+    b+='<h4>Your team</h4>'+(ST.length?ST.map((s,i)=>{const ln=daysTo(s.lic),bd=bdayIn(s.bday);return '<div class="xrow"><span class="grow">'+esc(s.name)+'<small>'+(s.lic?'License '+fmtD(s.lic):'No license date')+(s.bday?' · Birthday '+esc(s.bday):'')+'</small></span>'+(bd!==null&&bd<=7?'<span class="tag ok">'+(bd===0?'Birthday today':'Birthday in '+bd+' d')+'</span>':'')+(ln!==null&&ln<=60?dueTag(ln):'')+'<button class="link xdel" data-delstaff="'+i+'" aria-label="Remove">×</button></div>'}).join(''):'<p class="sub xs">Add your technicians to track license dates and birthdays.</p>')
+     +'<div class="xform"><input id="stName" placeholder="Name"><input id="stLic" type="date" aria-label="License expires"><input id="stBday" placeholder="Birthday MM-DD"><button class="small primary" id="stAdd">Add</button></div>'
+     +'<h4>Hiring</h4>'+(JOBPOST!==null?'<textarea class="xdraft" id="jobPost" rows="7">'+esc(JOBPOST)+'</textarea><div class="row xbtns"><button class="small primary" id="jobCopy">Copy job post</button><button class="small" id="jobNew">Write again</button></div>':'<button class="small" id="jobNew">Write a job post (Vietnamese + English)</button>');
+    h+=toolFold('team','Team Desk',al.team,b);
+  }
+  return h?'<div class="toolsHead">Your tools</div>'+h:'';
+}
+function pkSheet(){
+  return '<div class="isheet" id="pkSheet" role="dialog" aria-modal="true" aria-labelledby="pkTitle"><div class="ibox"><b id="pkTitle" style="font-size:19px">Packages</b><p class="sub" style="margin:4px 0 12px">Turn each tool on or off. Summi’s email briefing is always on.</p>'
+   +PKG.map(p=>'<button class="pkrow'+(pkOn(p.k)?' on':'')+'" data-pk="'+p.k+'" role="switch" aria-checked="'+pkOn(p.k)+'"><span class="grow"><b>'+p.name+'</b><small>'+p.desc+'</small></span><i class="sw"><i></i></i></button>').join('')
+   +'<p class="sub xs" style="margin-top:10px">A tool you turn on fills in with the next briefing (within the hour), or tap “Prepare a fresh briefing now”.</p><div class="ibtns one"><button class="primary" id="pkClose">Done</button></div></div></div>';
+}
+function renderPk(){const el=$('#pk');if(el)el.innerHTML=PKSHEET?pkSheet():''}
+function copyText(t,k){const ok=()=>{if(k){S.done[k]=S.done[k]||'Copied';save()}render();flash('✓ Copied. Paste it where it needs to go.')};(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(ok).catch(ok)}
+function xItem(k){const ex=EX(),[p,ref]=[k.slice(0,3),Number(k.slice(3))];
+  if(p==='rv_')return (ex.reviews||[]).find(x=>x.ref===ref);if(p==='tm_')return (ex.team||[]).find(x=>x.ref===ref);
+  if(p==='ch_')return (ex.chairs||[]).find(x=>'ch_'+x.ref+x.when===k);}
+document.addEventListener('input',e=>{const k=e.target.dataset.xdraft;if(k){S.xd={...(S.xd||{}),[k]:e.target.value};save()}if(e.target.id==='jobPost')JOBPOST=e.target.value});
+document.addEventListener('click',e=>{
+  if(e.target.id==='pkSheet'){PKSHEET=false;renderPk();return render()}
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(b.id==='pkOpen'){PKSHEET=true;return renderPk()}
+  if(b.id==='pkClose'){PKSHEET=false;renderPk();return render()}
+  if(d.pk){S.pkgs={...(S.pkgs||{}),[d.pk]:!pkOn(d.pk)};save();pushSettings();renderPk();return render()}
+  if(d.tool){S.fold={...(S.fold||{}),[d.tool]:true};save();render();document.querySelector('details[data-fold="'+d.tool+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(d.xcopy){const x=xItem(d.xcopy);const t=(S.xd&&S.xd[d.xcopy])??(x?.reply||x?.text||'');return copyText(t,d.xcopy)}
+  if(d.xsend){const x=xItem(d.xsend);if(!x||!x.ref||pending)return;const it={id:d.xsend,ref:x.ref,draft:(S.xd&&S.xd[d.xsend])??x.reply,to:x.email||x.name||'them'};S.drafts[it.id]=it.draft;send(it);return}
+  if(b.id==='licAdd'){const who=$('#licWho').value.trim(),kind=$('#licKind').value,exp=$('#licExp').value;if(!who||!exp)return flash('Add whose license it is and the date it expires.');S.licenses=[...(S.licenses||[]),{who,kind,exp}];save();pushSettings();return render()}
+  if(d.dellic!==undefined){S.licenses=(S.licenses||[]).filter((_,i)=>i!==+d.dellic);save();pushSettings();return render()}
+  if(b.id==='svcAdd'){const name=$('#svcName').value.trim(),price=+$('#svcPrice').value,min=+$('#svcMin').value;if(!name||!(price>0)||!(min>0))return flash('Add the service name, price and minutes.');S.services=[...(S.services||[]).filter(s=>s.name!==name),{name,price,min}];save();pushSettings();return render()}
+  if(d.delsvc!==undefined){S.services=(S.services||[]).filter((_,i)=>i!==+d.delsvc);save();pushSettings();return render()}
+  if(b.id==='stAdd'){const name=$('#stName').value.trim(),lic=$('#stLic').value,bday=$('#stBday').value.trim();if(!name)return flash('Add the person’s name.');if(bday&&!/^\d{1,2}-\d{1,2}$/.test(bday))return flash('Write the birthday as MM-DD, like 07-14.');S.staff=[...(S.staff||[]),{name,lic,bday}];save();pushSettings();return render()}
+  if(d.delstaff!==undefined){S.staff=(S.staff||[]).filter((_,i)=>i!==+d.delstaff);save();pushSettings();return render()}
+  if(b.id==='jobCopy')return copyText(JOBPOST||'');
+  if(b.id==='jobNew'){b.disabled=true;b.textContent='Writing…';JOBPOST='';let shown=false;const biz=(S.businesses||[]).filter(x=>x.key!=='Personal').map(x=>x.key+(x.city?' ('+x.city+')':'')).join(', ');
+    apiStream('/draft/stream',{ref:0,title:'Write a job post to hire a licensed nail technician for '+(S.biz&&S.biz!=='Personal'?S.biz:biz)+'. Write it first in Vietnamese, then in English. Include what the job is, what we offer, and how to apply; where pay, hours or the address are needed write [NEEDS YOUR INPUT].',why:'Job post for Indeed, Facebook groups and the salon window. It may be up to 200 words.'},ev=>{
+      if(ev.t){JOBPOST+=ev.t;if(!shown){shown=true;render()}const x=$('#jobPost');if(x){x.value=JOBPOST;x.scrollTop=x.scrollHeight}}
+    }).then(r=>{JOBPOST=(r&&r.draft)||JOBPOST;render()}).catch(e=>{JOBPOST=null;render();flash(errText(e))});return}
+});
 
 /* ======================= proactive plan ======================= */
 function plan(all){
@@ -418,10 +556,12 @@ function plan(all){
    +(top?chip(top,'Start here: '+esc(mask(top.title)).slice(0,70)+(top.title.length>70?'…':'')):'')
    +(ready.length?chip(ready[0],'✉ '+ready.length+' repl'+(ready.length===1?'y':'ies')+' ready to approve'):'')
    +(amt?'<button class="pchip" data-view="opp">'+mask(money(amt))+' in leads</button>':'')
-   +(ni>1?'<span class="pnote">'+ni+' inboxes in this list</span>':'')+'</div>'
+   +toolChips()+(ni>1?'<span class="pnote">'+ni+' inboxes in this list</span>':'')+'</div>'
    +(ready.length>1?'<button class="primary qgo" id="qStart">Go through '+ready.length+' replies, one at a time →</button>':'')
    +didLog()+'</section>';
 }
+function toolChips(){const a=toolAlerts(),L={paper:['📄','paperwork deadline','paperwork deadlines'],reviews:['★','review to answer','reviews to answer'],chairs:['💺','empty chair to fill','empty chairs to fill'],profit:['📈','money alert','money alerts'],team:['👥','team item','team items']};
+  return Object.keys(a).filter(k=>a[k]).map(k=>'<button class="pchip tchip" data-tool="'+k+'">'+L[k][0]+' '+a[k]+' '+(a[k]===1?L[k][1]:L[k][2])+'</button>').join('')}
 function didLog(){
   const st=B.stats||{},t=d=>new Date(d).toLocaleTimeString(LOC(),{hour:'numeric',minute:'2-digit'});
   const drafted=(B.items||[]).filter(i=>i.draft).length,sent=Object.values(S.done).filter(v=>v==='Sent').length;
@@ -664,7 +804,7 @@ function setup(){
   return h;
 }
 function render(){if(B&&Array.isArray(B.items)&&B.items.some(i=>i&&i.chat))B.items=B.items.filter(i=>!i.chat);
-  setTimeout(askRender,0);setTimeout(renderQueue,0);
+  setTimeout(askRender,0);setTimeout(renderQueue,0);setTimeout(renderPk,0);
   if(!S.setupDone)route='setup';
   document.querySelector('.tools').hidden=!S.setupDone;
   renderBlocks();
@@ -757,7 +897,7 @@ async function loadState(){
   render();
 }
 let pushT;function pushSettings(now){clearTimeout(pushT);const go=()=>{if(!TOKEN)return Promise.resolve();
-  const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest,done:S.done,later:S.later,lang:S.lang||'en',tz:Intl.DateTimeFormat().resolvedOptions().timeZone};
+  const app={businesses:S.businesses,profiles:S.profiles,blocks:S.blocks,hourValue:S.hourValue,setupDone:S.setupDone,suggest:S.suggest,done:S.done,later:S.later,lang:S.lang||'en',pkgs:S.pkgs||{},licenses:S.licenses||[],staff:S.staff||[],services:S.services||[],tz:Intl.DateTimeFormat().resolvedOptions().timeZone};
   return api('/settings',{owner:S.owner,partner:S.partner,settings:{businesses:S.businesses,app}}).catch(()=>{})};if(now)return go();pushT=setTimeout(go,800)}
 async function oauthStart(btn,provider){
   btn.disabled=true;flash('Opening '+(provider==='google'?'Google':'Microsoft')+'…');
