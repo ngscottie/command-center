@@ -219,9 +219,9 @@ function card(it,n){
   if(it.kind==='reply'&&it.draft){
     const d=S.drafts[it.id]??it.draft;
     if(!open){
-      h+='<div class="row"><span class="drafted">✓ Reply drafted to '+esc(it.to.split(',')[0])+'</span><button class="small primary" data-open="'+it.id+'">Review & approve</button></div>';
+      h+='<div class="row"><span class="drafted">✓ Reply drafted to '+esc(String(it.toEmail||it.to||'them').split(',')[0])+'</span><button class="small primary" data-open="'+it.id+'">Review & approve</button></div>';
     }else{
-      h+='<div class="draft"><small>To '+esc(it.to)+' · sends from '+sendFrom()+'</small>'
+      h+='<div class="draft"><small>To '+esc(it.toEmail||it.to)+' · sends from '+sendFrom()+'</small>'
        +(S.pres?'<div class="why" style="white-space:pre-wrap;-webkit-line-clamp:unset;background:var(--bg);border-radius:12px;padding:10px 12px;color:var(--ink)">'+esc(mask(d))+'</div>'
                :'<textarea data-draft="'+it.id+'" aria-label="Reply to '+esc(it.to)+'">'+esc(d)+'</textarea>')
        +'<div class="row"><button class="primary" data-send="'+it.id+'"'+(S.pres?' disabled title="Sending is off while presenting"':'')+'>Approve & send</button><button class="small" data-open="'+it.id+'">Close</button><button class="small" data-done="'+it.id+'" data-label="Handled another way">I’ll handle it</button></div></div>';
@@ -374,7 +374,7 @@ function send(it){
   const body=(S.drafts[it.id]??it.draft).trim();
   pending={id:it.id,t:setTimeout(async()=>{
     toast('Sending…');
-    try{const r=await api('/send',{ref:it.ref,body});
+    try{const r=await api('/send',{ref:it.ref,body,toEmail:it.toEmail||''});
       S.done[it.id]='Sent';save();render();toast('Sent to '+esc(r.to||it.to)+'.');setTimeout(()=>toast(''),4000);
     }catch(e){toast('');render();flash(errText(e))}
     pending=null;
@@ -515,7 +515,7 @@ function askAnswer(a,ti){
   for(const r of a.replies||[]){
     const k=ti+':'+r.id,d=ASK.drafts[k]??r.draft;
     h+='<div class="rep">'+(ASK.sent[k]?'<span class="drafted">✓ '+esc(ASK.sent[k])+' to '+esc(r.to)+'</span>':
-      '<span class="drafted">✓ Reply drafted to '+esc(r.to)+'</span>'+(r.subject?'<div class="why" style="-webkit-line-clamp:1">Re: '+esc(r.subject)+'</div>':'')
+      '<span class="drafted">✓ Reply drafted to '+esc(r.toEmail||r.to)+'</span>'+(r.subject?'<div class="why" style="-webkit-line-clamp:1">Re: '+esc(r.subject)+'</div>':'')
       +(S.pres?'<div class="why" style="white-space:pre-wrap;-webkit-line-clamp:unset">'+esc(mask(d))+'</div>':'<textarea data-askdraft="'+k+'" aria-label="Reply to '+esc(r.to)+'" style="min-height:120px">'+esc(d)+'</textarea>')
       +'<div class="row"><button class="primary small" data-asksend="'+k+'"'+(S.pres?' disabled':'')+'>Approve & send</button></div>')+'</div>';
   }
@@ -538,7 +538,7 @@ function askSend(k){
   const body=(ASK.drafts[k]??r.draft).trim();
   pending={t:setTimeout(async()=>{
     toast('Sending…');
-    try{await api('/send',{ref:r.ref,body});ASK.sent[k]='Sent';toast('Sent to '+esc(r.to)+'.');setTimeout(()=>toast(''),4000)}
+    try{await api('/send',{ref:r.ref,body,toEmail:r.toEmail||''});ASK.sent[k]='Sent';toast('Sent to '+esc(r.to)+'.');setTimeout(()=>toast(''),4000)}
     catch(e){toast(esc(errText(e)));setTimeout(()=>toast(''),6000)}
     pending=null;askRender();
   },6000)};
