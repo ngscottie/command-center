@@ -342,11 +342,7 @@ function ledger(all){
    +MB.map(m=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(m.email)+'</span><small>'+(m.status==='ok'?'✓ Connected'+(m.last_sync?' · checked '+new Date(m.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
      +('<button class="ledit" data-delmb="'+esc(m.id)+'" aria-label="Remove '+esc(m.email)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>')+'</div>').join('')
    +'<button class="ladd" id="addInbox">+ Add an inbox</button></div>'
-   +'<h3 style="margin-top:20px">Your group chats <span>'+CH.length+'</span></h3><div class="ledger">'
-   +CH.map(c=>'<div class="lwrap"><div class="lrow" style="cursor:default"><span>'+esc(APPS[c.app]?.name||c.app)+(c.name?' · '+esc(c.name):'')+'</span><small>'+(c.status==='ok'?'✓ Connected'+(c.last_sync?' · checked '+new Date(c.last_sync).toLocaleTimeString(LOC(), {hour:'numeric',minute:'2-digit'}):''):'⚠ Needs to be reconnected')+'</small></div>'
-     +'<button class="ledit" data-delchat="'+esc(c.id)+'" aria-label="Remove '+esc(APPS[c.app]?.name||c.app)+'" title="Remove"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button></div>').join('')
-   +'<button class="ladd" id="addChat">+ Connect a group chat</button></div>'
-   +'<p class="note">Messages from your group chats are read with your email and show up in the same briefing.</p></aside>';
+   +'</aside>';
 }
 
 /* ======================= home ======================= */
@@ -556,7 +552,7 @@ function setup(){
   h+='<div class="nav"><button id="back"'+(st===0?' disabled':'')+'>Back</button>'+(st<STEPS.length-1?'<button class="primary" id="next">Continue</button>':'<button class="primary" id="finish">Prepare my first briefing</button>')+'</div></div>';
   return h;
 }
-function render(){
+function render(){if(B&&Array.isArray(B.items)&&B.items.some(i=>i&&i.chat))B.items=B.items.filter(i=>!i.chat);
   setTimeout(askRender,0);
   if(!S.setupDone)route='setup';
   document.querySelector('.tools').hidden=!S.setupDone;
@@ -735,7 +731,7 @@ function askAnswer(a,ti){
       +(S.pres?'<div class="why" style="white-space:pre-wrap;-webkit-line-clamp:unset">'+esc(mask(d))+'</div>':'<textarea data-askdraft="'+k+'" aria-label="Reply to '+esc(r.to)+'" style="min-height:120px">'+esc(d)+'</textarea>')
       +'<div class="row"><button class="primary small" data-asksend="'+k+'"'+(S.pres?' disabled':'')+'>Approve & send</button></div>')+'</div>';
   }
-  return h+'<div class="src">From '+(a.read||0)+' emails'+(a.chats?' and '+a.chats+' chat messages':'')+(a.scope?' in '+esc(a.scope):'')+'.</div></div>';
+  return h+'<div class="src">From '+(a.read||0)+' emails'+''+(a.scope?' in '+esc(a.scope):'')+'.</div></div>';
 }
 async function ask(q,deep){
   q=String(q||'').trim();if(!q||ASK.busy||ASK.turns.some(x=>x.a&&x.a.streaming))return;
