@@ -151,6 +151,9 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 @media(max-width:400px){.brand{font-size:12.5px;letter-spacing:.01em}}
 .credit{text-align:center;font-size:12px;color:var(--muted);padding:6px 16px 90px;letter-spacing:.02em}.credit b{color:var(--ink);font-weight:700}
 @media(prefers-reduced-motion:reduce){body{transition:none}}
+.stabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px}.stabs button{flex:none;border-radius:99px}.stabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.editbiz{margin:6px 0 10px;border-color:var(--red)}
+.eform{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}.eform label{display:grid;gap:4px}.eform input,.eform select{width:100%}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -334,6 +337,17 @@ function home(){
 
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
+let EDIT=null;
+function bizEditForm(b){
+  const opt=Object.entries(TYPES).map(([k,v])=>'<option value="'+k+'"'+(k===b.type?' selected':'')+'>'+v.label+'</option>').join('');
+  const run=S.partner?'<label class="sub">Who runs it<select id="eRun">'+people().concat('Both').map(p=>'<option'+(p===b.runBy?' selected':'')+'>'+esc(p)+'</option>').join('')+'</select></label>':'';
+  const boxes=MB.length?'<div class="sub" style="margin-top:4px">Inboxes for this business</div>'+MB.map(m=>'<label class="addr"><input type="checkbox" data-eaddr="'+esc(m.email)+'"'+((b.addr||[]).includes(m.email)?' checked':'')+'><span class="grow">'+esc(m.email)+'</span></label>').join(''):'';
+  return '<div class="box editbiz" role="group" aria-label="Edit '+esc(b.key)+'"><b>Edit '+esc(b.key)+'</b>'
+   +'<div class="eform"><label class="sub">Name<input id="eName" value="'+esc(b.key)+'"></label><label class="sub">City<input id="eCity" value="'+esc(b.city||'')+'"></label>'
+   +'<label class="sub">Type<select id="eType">'+opt+'</select></label>'+run+'</div>'
+   +'<label class="addr" style="border:0"><input type="checkbox" id="eOpen"'+(b.opening?' checked':'')+'><span>Opening soon</span></label>'+boxes
+   +'<div class="row" style="margin-top:10px"><button class="primary small" id="eSave">Save changes</button><button class="small" id="eCancel">Cancel</button></div></div>';
+}
 const PNAME={gmail:'Gmail',icloud:'iCloud',yahoo:'Yahoo',aol:'AOL',godaddy:'GoDaddy',zoho:'Zoho',fastmail:'Fastmail',custom:'Connected'};
 function profileCard(p,biz){
   if(!p)return '';
@@ -345,7 +359,7 @@ function profileCard(p,biz){
 const people=()=>[S.owner||'Me',S.partner].filter(Boolean);
 function setup(){
   document.body.classList.remove('eve');
-  const st=S.setupStep;let h='<div class="setup"><div class="steps">'+STEPS.map((s,i)=>'<i class="'+(i<=st?'on':'')+'" title="'+s+'"></i>').join('')+'</div><div class="status" id="status" hidden></div>';
+  const st=S.setupStep;let h='<div class="setup">'+(S.setupDone?'<nav class="stabs" aria-label="Setup sections">'+STEPS.slice(0,3).map((s,i)=>'<button class="small'+(i===st?' on':'')+'" data-step="'+i+'"'+(i===st?' aria-current="page"':'')+'>'+s+'</button>').join('')+'</nav>':'<div class="steps">'+STEPS.map((s,i)=>'<i class="'+(i<=st?'on':'')+'" title="'+s+'"></i>').join('')+'</div>')+'<div class="status" id="status" hidden></div>';
   if(st===0){
     h+='<h1>Become the owner you <em>always wanted to be</em>.</h1><p class="sub">Not another app to check. Every morning your inboxes are already read, what matters comes first, and replies are written for you to approve.</p>'
      +'<div class="box"><label for="ownerIn"><b>Your first name</b></label><div style="margin-top:8px"><input id="ownerIn" value="'+esc(S.owner)+'" style="width:100%" autocomplete="given-name"></div>'
@@ -379,7 +393,7 @@ function setup(){
      +'<button class="primary" id="lookup">Look it up</button></div></div>'
      +'<div id="lookupOut">'+(S.lastLookup?profileCard(S.lastLookup,S.businesses.find(b=>b.key===S.lastLookup.name)):'')+'</div>'
      +'<div class="sect"><h2>Your businesses</h2><span>'+S.businesses.length+'</span></div>'
-     +(S.businesses.length?'<div class="ledger">'+S.businesses.map(b=>'<div class="lrow" style="cursor:default"><span>'+esc(b.key)+'</span><small>'+esc([b.city,TYPES[b.type]?.label,b.opening?'opening soon':'',S.partner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt"><button class="link" data-showprof="'+esc(b.key)+'">'+(S.showProf===b.key?'Hide':'View')+'</button> <button class="link" style="color:var(--muted)" data-rmbiz="'+esc(b.key)+'">Remove</button></span></div>').join('')+'</div>':'<p class="sub">None yet. Add your first one above.</p>')
+     +(S.businesses.length?'<div class="ledger">'+S.businesses.map(b=>'<div class="lrow" style="cursor:default"><span>'+esc(b.key)+'</span><small>'+esc([b.city,TYPES[b.type]?.label,b.opening?'opening soon':'',S.partner?b.runBy:''].filter(Boolean).join(' · '))+'</small><span class="cnt"><button class="link" data-editbiz="'+esc(b.key)+'">Edit</button> <button class="link" data-showprof="'+esc(b.key)+'">'+(S.showProf===b.key?'Hide':'View')+'</button> <button class="link" style="color:var(--muted)" data-rmbiz="'+esc(b.key)+'">Remove</button></span></div>'+(EDIT===b.key?bizEditForm(b):'')).join('')+'</div>':'<p class="sub">None yet. Add your first one above.</p>')
      +'<div id="profOut">'+(S.showProf?profileCard(S.profiles[S.showProf],S.businesses.find(b=>b.key===S.showProf)):'')+'</div>';
   }else{
     const n=MB.length;
@@ -628,6 +642,18 @@ document.addEventListener('click',e=>{
   if(d.rmmb){api('/disconnect',{id:d.rmmb}).then(loadState);return}
   if(b.id==='lookup')return lookup(b);
   if(d.addsug!==undefined){const x=S.suggest[+d.addsug];if(x)lookup(b,x);return}
+  if(d.step!==undefined){S.setupStep=+d.step;EDIT=null;save();scrollTo(0,0);return render()}
+  if(d.editbiz){EDIT=EDIT===d.editbiz?null:d.editbiz;render();setTimeout(()=>$('#eName')?.focus(),0);return}
+  if(b.id==='eCancel'){EDIT=null;return render()}
+  if(b.id==='eSave'){const bz=S.businesses.find(x=>x.key===EDIT);if(!bz){EDIT=null;return render()}
+    const name=$('#eName').value.trim();if(!name)return flash('The business needs a name.');
+    if(name!==bz.key&&S.businesses.some(x=>x.key===name))return flash('You already have a business with that name.');
+    const type=$('#eType').value,old=bz.key;
+    if(bz.what===(TYPES[bz.type]?.label||'')||!bz.what||type!==bz.type)bz.what=TYPES[type].label;
+    if(type!==bz.type&&S.profiles[old])S.profiles[old]={...S.profiles[old],what:TYPES[type].label.toLowerCase(),help:TYPES[type].help};
+    Object.assign(bz,{key:name,city:$('#eCity').value.trim(),type,opening:$('#eOpen').checked,runBy:$('#eRun')?.value||bz.runBy,addr:[...document.querySelectorAll('[data-eaddr]')].filter(x=>x.checked).map(x=>x.dataset.eaddr)});
+    if(name!==old){if(S.profiles[old]){S.profiles[name]={...S.profiles[old],name};delete S.profiles[old]}if(S.biz===old)S.biz=name;if(S.showProf===old)S.showProf=name;if(S.lastLookup?.name===old)S.lastLookup=null}
+    EDIT=null;save();if(S.setupDone)pushSettings();render();return flash('✓ '+name+' updated. Your next briefing will use it.')}
   if(d.rmbiz){S.businesses=S.businesses.filter(x=>x.key!==d.rmbiz);delete S.profiles[d.rmbiz];if(S.lastLookup?.name===d.rmbiz)S.lastLookup=null;save();return render()}
   if(d.showprof){S.showProf=S.showProf===d.showprof?null:d.showprof;S.lastLookup=null;save();return render()}
 });
