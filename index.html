@@ -437,7 +437,8 @@ async function oauthStart(btn,provider){
 async function detectEmail(btn){
   const email=$('#cEmail').value.trim().toLowerCase();if(!email)return flash('Type the email address first.');
   btn.disabled=true;btn.textContent='Checking…';
-  try{const d=await api('/detect',{email});S.conn={email,det:d};save();render();setTimeout(()=>$('#cPass')?.focus(),50)}
+  try{await ensureAccount();if(!OAUTH.google)OAUTH=await api('/oauth/available',{}).catch(()=>OAUTH);
+    const d=await api('/detect',{email});S.conn={email,det:d};save();render();setTimeout(()=>$('#cPass')?.focus(),50)}
   catch(e){btn.disabled=false;btn.textContent='Continue';flash(errText(e))}
 }
 async function connectEmail(btn){
