@@ -214,8 +214,8 @@ body{line-height:1.55;-webkit-font-smoothing:antialiased}body.eve{--bg:light-dar
 .tools{display:none!important}
 .topr{gap:8px}.topr .lang,#menuBtn{border:0;background:var(--soft);min-height:36px;min-width:36px;border-radius:99px;font-weight:700;font-size:12.5px;padding:0 11px;letter-spacing:.03em}
 #menuBtn{display:inline-flex;align-items:center;justify-content:center;padding:0 9px}
-.blocks{gap:24px;padding:4px 18px 0;border-bottom:1px solid var(--line);background:var(--bg);scrollbar-width:none}.blocks::-webkit-scrollbar{display:none}
-.blocks button{min-height:44px;padding:0;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;color:var(--muted)}
+.blocks{gap:18px;padding:4px 18px 0;border-bottom:1px solid var(--line);background:var(--bg);scrollbar-width:none}.blocks::-webkit-scrollbar{display:none}
+.blocks button{min-height:44px;padding:0;font-size:14px!important;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:600;color:var(--muted)}
 .blocks button small{display:none}
 .blocks button.on{background:none;color:var(--ink);border-color:var(--ink)}.blocks button.now:not(.on){border-color:transparent}
 .blocks button.now::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:6px}
@@ -226,6 +226,7 @@ h1{font-size:clamp(25px,4.2vw,34px);font-weight:700;letter-spacing:-.02em;line-h
 .stats{gap:0;background:var(--card);border-radius:18px;margin:22px 0 4px;box-shadow:var(--sh);overflow:hidden}
 .stat,button.stat{border:0;border-radius:0;background:none;padding:14px 14px 12px;border-left:1px solid var(--line)}.stats .stat:first-child{border-left:0}
 .stat.hero{background:none;color:inherit}.stat.hero small{color:var(--muted)}.stat.hero b{color:var(--red)}
+button.stat{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start}
 .stat b{font-size:22px;font-weight:700;margin-top:2px}.stat small{font-size:12.5px}.stat i{font-style:normal;font-size:12px;color:var(--muted);display:block}
 .jump{margin-top:6px}.jump .small{border:0;background:none;color:var(--muted);padding:0;min-height:34px;font-weight:600;font-size:13.5px}
 .sect{margin:30px 2px 10px}.sect h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}.sect span{font-size:12.5px}
