@@ -211,6 +211,7 @@ button.stat:active{transform:scale(.98)}
 .caret{display:inline-block;width:8px;height:16px;margin-left:2px;background:var(--red);vertical-align:-3px;animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
 .deeptag{font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .askbar .deepbtn{white-space:nowrap}
+.tag.inbox{font-weight:600;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -298,7 +299,7 @@ function card(it,n){
   const g=S.gen&&S.gen[it.id];if(g&&!it.draft)it={...it,...g,kind:g.ref?'reply':'do'};
   const done=S.done[it.id],open=S.open[it.id];
   let h='<article data-card="'+esc(it.id)+'" class="card '+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
-   +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.chat?'<span class="tag chat">'+esc((APPS[it.app]?.name||'Chat')+' · '+it.chat)+'</span>':'')+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
+   +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.inbox&&MB.length>1?'<span class="tag inbox" title="Came in to">✉ '+esc(it.inbox)+'</span>':'')+(it.chat?'<span class="tag chat">'+esc((APPS[it.app]?.name||'Chat')+' · '+it.chat)+'</span>':'')+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
    +(it.urg>=3&&!done&&it.cat!=='opp'?'<span class="tag">Top priority</span>':'')+(done?'<span class="tag ok">'+esc(done)+'</span>':'')+'</div>'
    +'<div class="title'+(it.ref?' hasmsg" data-msg="'+it.ref+'" role="button" tabindex="0" title="See the email':'')+'">'+esc(mask(it.title))+'</div>';
   if(done)return h+'</div></article>';
