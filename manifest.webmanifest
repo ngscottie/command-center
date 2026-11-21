@@ -1,7 +1,7 @@
 {
   "id": "/command-center/",
-  "name": "Command Center",
-  "short_name": "Command",
+  "name": "Summi",
+  "short_name": "Summi",
   "description": "Your inboxes, briefed and ready: money first, problems by noon, replies ready to approve.",
   "scope": "./",
   "display": "standalone",

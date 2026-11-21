@@ -10,11 +10,11 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Command">
+<meta name="apple-mobile-web-app-title" content="Summi">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#fbf8f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16121a" media="(prefers-color-scheme: dark)">
-<title>Command Center</title>
+<title>Summi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -40,6 +40,7 @@ button:disabled{opacity:.55;cursor:default}
 input,select{border:1px solid var(--line);background:var(--card);border-radius:10px;min-height:44px;padding:0 12px;font-size:16px}
 :is(button,textarea,input,select,a):focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .top{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px max(3vw,14px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+.brand{color:var(--red);font-size:19px!important;letter-spacing:.06em!important}.brand #ownerName{color:var(--ink);font-weight:600;opacity:.75;text-transform:none;font-size:14px;letter-spacing:0}
 .brand{font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand span{color:var(--red)}
 .tools[hidden]{display:none}.tools{display:flex;gap:6px;align-items:center;flex:none}
 .tools button{min-height:34px;font-size:13px;font-weight:600;padding:0 10px}
@@ -237,13 +238,13 @@ button.stat:active{transform:scale(.98)}
 </head>
 <body>
 <div class="top">
-  <div class="brand"><span id="ownerName">Your</span> Command Center</div>
+  <div class="brand">Summi<span id="ownerName"></span></div>
   <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="refreshBtn" class="lang rf" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
-<script src="vi.js?v=8"></script>
+<script src="vi.js?v=9"></script>
 <div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
@@ -381,7 +382,7 @@ function plan(all){
   if(!open.length)return '<section class="plan"><b class="ph">Your inboxes are clear</b><p>Nothing needs you right now. I’ll keep watching and flag anything new.</p></section>';
   const txt=B.summary&&!S.biz?B.summary:'I went through '+(B.stats?.emails||'your')+' emails'+(MB.length>1?' across '+MB.length+' inboxes':'')+'. '+open.length+' item'+(open.length===1?'':'s')+' need'+(open.length===1?'s':'')+' you'+(nb>1?' across '+nb+' businesses':'')+(ready.length?', and '+ready.length+' repl'+(ready.length===1?'y is':'ies are')+' already written':'')+'.';
   const chip=(it,l)=>'<button class="pchip" data-goto="'+esc(it.id)+'" data-cat="'+it.cat+'">'+l+'</button>';
-  return '<section class="plan" aria-label="Your plan"><b class="ph">Here’s your plan</b><p>'+esc(mask(txt))+'</p><div class="pchips">'
+  return '<section class="plan" aria-label="Your plan"><b class="ph">Summi’s plan for you</b><p>'+esc(mask(txt))+'</p><div class="pchips">'
    +(top?chip(top,'Start here: '+esc(mask(top.title)).slice(0,70)+(top.title.length>70?'…':'')):'')
    +(ready.length?chip(ready[0],'✉ '+ready.length+' repl'+(ready.length===1?'y':'ies')+' ready to approve'):'')
    +(amt?'<button class="pchip" data-view="opp">'+mask(money(amt))+' in leads</button>':'')
@@ -637,8 +638,7 @@ function render(){if(B&&Array.isArray(B.items)&&B.items.some(i=>i&&i.chat))B.ite
   renderBlocks();
   $('#pres').classList.toggle('on',S.pres);$('#pres').setAttribute('aria-pressed',S.pres);
   $('#setupBtn').classList.toggle('on',route==='setup');
-  if(S.lang==='vi'){$('.brand').innerHTML='Trung tâm điều hành <span id="ownerName">'+(S.owner?'của '+esc(S.owner):'của bạn')+'</span>';document.title='Trung tâm điều hành'+(S.owner?' của '+S.owner:'')}
-  else{$('.brand').innerHTML='<span id="ownerName">'+(S.owner?esc(S.owner)+'’s':'Your')+'</span> Command Center';document.title=(S.owner?S.owner+'’s ':'')+'Command Center'}
+  $('.brand').innerHTML='Summi'+(S.owner?'<span id="ownerName"> · '+esc(S.owner)+'</span>':'');document.title='Summi'+(S.owner?' · '+S.owner:'');
   $('#langBtn').textContent=S.lang==='vi'?'EN':'VI';document.documentElement.lang=S.lang==='vi'?'vi':'en';
   $('#app').innerHTML=route==='setup'?setup():home();
   const md=$('#modal'),want=MSG?'msg:'+MSG.ref+':'+(MSG.loading?1:MSG.err?2:0):CONFIRM?'cf:'+CONFIRM.kind+':'+CONFIRM.id:CHATCONN?'ch:'+CHATCONN:HOUREDIT?'hour':(EDIT&&route!=='setup'?EDIT:'');
@@ -785,10 +785,10 @@ function askLabel(a){const b=(S.businesses||[]).find(x=>(x.addr||[]).includes(a)
 function askRender(){
   const el=$('#ask');if(!el)return;
   if(route==='setup'||route==='welcome'){el.innerHTML='';return}
-  if(!ASK.open){if(document.activeElement&&document.activeElement.id==='dockIn')return;el.innerHTML='<div class="dock"><div class="dchips">'+QUICK.slice(0,3).map(q=>'<button data-askq="'+esc(q)+'">'+esc(q)+'</button>').join('')+'</div><form class="dbar" id="dockForm"><input id="dockIn" placeholder="Ask about any inbox…" aria-label="Ask about your email" autocomplete="off"><button class="primary" id="dockGo">Ask</button></form></div>';return}
+  if(!ASK.open){if(document.activeElement&&document.activeElement.id==='dockIn')return;el.innerHTML='<div class="dock"><div class="dchips">'+QUICK.slice(0,3).map(q=>'<button data-askq="'+esc(q)+'">'+esc(q)+'</button>').join('')+'</div><form class="dbar" id="dockForm"><input id="dockIn" placeholder="Ask Summi about any inbox…" aria-label="Ask Summi" autocomplete="off"><button class="primary" id="dockGo">Ask</button></form></div>';return}
   const inb=askInboxes();
-  el.innerHTML='<div class="sheet" id="askSheet"><div class="pane" role="dialog" aria-label="Ask about your email">'
-   +'<div class="phead"><b>Ask about your email</b><button class="small" id="askClose">Close</button></div>'
+  el.innerHTML='<div class="sheet" id="askSheet"><div class="pane" role="dialog" aria-label="Ask Summi">'
+   +'<div class="phead"><b>Ask Summi</b><button class="small" id="askClose">Close</button></div>'
    +'<div class="chips" aria-label="Which inbox">'+['',...inb].map(a=>'<button data-inbox="'+esc(a)+'" class="'+(ASK.inbox===a?'on':'')+'">'+(a?esc(askLabel(a)):'All inboxes')+'</button>').join('')+'</div>'
    +'<div class="chips">'+QUICK.map(q=>'<button data-askq="'+esc(q)+'">'+esc(q)+'</button>').join('')+'</div>'
    +'<div class="convo" id="convo">'+(ASK.turns.length?'':'<p class="sub">Pick an inbox, tap a question or type your own. Then tell me what to change: “make the reply shorter”, “what about Friday?”</p>')
@@ -1035,7 +1035,7 @@ setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!document.querySe
 <div class="isheet" id="isheet" hidden role="dialog" aria-modal="true" aria-labelledby="ititle"><div class="ibox" id="ibox"></div></div>
 <div class="welcome" id="welcome" hidden><div class="wbox">
   <img src="icons/icon-192.png" alt="">
-  <h2>Welcome to Command Center</h2>
+  <h2>Welcome to Summi</h2>
   <p>Open the invite link you were sent, or paste it here to continue.</p>
   <input id="wlink" placeholder="Paste your invite link" autocomplete="off" aria-label="Invite link">
   <button class="primary" id="wgo">Continue</button>
@@ -1055,7 +1055,7 @@ setInterval(()=>{if(S.view==='auto'&&route==='home'&&!pending&&!document.querySe
 
   const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
   const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-label="Add"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
-  const head = '<div class="ihead"><img src="icons/icon-192.png" alt=""><div><b id="ititle">Put Command Center on your home screen</b><small>One tap to your briefing. Opens full screen, like any app.</small></div></div>';
+  const head = '<div class="ihead"><img src="icons/icon-192.png" alt=""><div><b id="ititle">Put Summi on your home screen</b><small>One tap to your briefing. Opens full screen, like any app.</small></div></div>';
 
   function close(remember) {
     $('isheet').hidden = true; const a = document.querySelector('.iarrow'); if (a) a.remove();
