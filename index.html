@@ -369,7 +369,7 @@ function chatSheet(){
   let h='<div class="isheet" id="chSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="ibox"><b id="chTitle" style="font-size:18px">Connect a group chat</b>';
   if(a==='groupme')h+='<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>Open <a href="https://dev.groupme.com/" target="_blank" rel="noopener">dev.groupme.com</a> and sign in with your GroupMe account</span></li><li><i>2</i><span>Tap <b>Access Token</b> at the top right</span></li><li><i>3</i><span>Copy it and paste it here</span></li></ol>'
     +'<input id="chTok" placeholder="Paste your GroupMe access token" autocomplete="off" spellcheck="false" style="width:100%">'
-    +'<p class="sub" style="font-size:13px;margin:8px 0 0">We read your groups and direct messages from the last few days. Nothing is posted to your chats.</p>'
+    +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">We read your groups and direct messages from the last few days. Nothing is posted to your chats.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect GroupMe</button></div>';
   else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['groupme','zalo','whatsapp'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
     +'<div class="ibtns one" style="margin-top:14px"><button id="chClose">Close</button></div>';
@@ -710,7 +710,7 @@ document.addEventListener('click',e=>{
   if(b.id==='chClose'){CHATCONN=null;return render()}
   if(b.id==='chGo'){const tok=($('#chTok').value||'').trim();if(!tok)return;b.disabled=true;b.textContent='Connecting…';
     api('/chats/connect',{app:'groupme',token:tok}).then(r=>{CHATCONN=null;return loadState().then(()=>flash('✓ GroupMe connected'+(r.messages?': '+r.messages+' recent messages read.':'.')+' Your next briefing will include it.'))})
-      .catch(e=>{b.disabled=false;b.textContent='Connect GroupMe';flash(e.code==='auth_failed'?'GroupMe didn’t accept that token. Copy it again from dev.groupme.com.':errText(e))});return}
+      .catch(e=>{b.disabled=false;b.textContent='Connect GroupMe';const m=$('#chErr');m.textContent=e.code==='auth_failed'?'GroupMe didn’t accept that token. Copy it again from dev.groupme.com.':errText(e);m.hidden=false});return}
   if(d.delchat){const c=CH.find(x=>x.id===d.delchat);CONFIRM={kind:'chat',id:d.delchat,label:c?(APPS[c.app]?.name||c.app)+(c.name?' · '+c.name:''):'this chat'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
   if(b.id==='addInbox'){route='setup';S.setupStep=1;EDIT=null;save();scrollTo(0,0);return render()}
   if(d.rmmb){const mb=MB.find(x=>x.id===d.rmmb);CONFIRM={kind:'mb',id:d.rmmb,label:mb?mb.email:'this inbox'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return;api('/disconnect',{id:d.rmmb}).then(loadState);return}
