@@ -216,7 +216,7 @@ button.stat:active{transform:scale(.98)}
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
 <footer class="credit">Powered by <b>SCTT Technicals</b><button class="link" id="addHome" hidden>Add to Home Screen</button></footer>
-<script src="vi.js?v=3"></script>
+<script src="vi.js?v=4"></script>
 <div id="ptr" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 <div id="ask"></div>
@@ -250,7 +250,7 @@ let SEED={preparedAt:null,items:[],waiting:[],good:[],stats:{}};
 
 /* ======================= state ======================= */
 let B=SEED,briefDoc=null;
-let S={owner:'',done:{},drafts:{},later:{},open:{},view:'auto',pres:false,biz:null,
+let S={owner:'',done:{},drafts:{},gen:{},later:{},open:{},view:'auto',pres:false,biz:null,
   blocks:{opp:9,prio:12,work:17},hourValue:75,businesses:[],profiles:{},setupStep:0,addresses:null,partner:'',suggest:[],setupDone:false};
 let stateRef=null,briefRef=null,saveT,pending=null,route='home';
 const $=s=>document.querySelector(s);
@@ -281,6 +281,7 @@ function renderBlocks(){
 
 /* ======================= cards ======================= */
 function card(it,n){
+  const g=S.gen&&S.gen[it.id];if(g&&!it.draft)it={...it,...g,kind:g.ref?'reply':'do'};
   const done=S.done[it.id],open=S.open[it.id];
   let h='<article class="card '+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
    +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.chat?'<span class="tag chat">'+esc((APPS[it.app]?.name||'Chat')+' · '+it.chat)+'</span>':'')+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
@@ -309,7 +310,7 @@ function card(it,n){
        +'<div class="row"><button class="primary" data-copy="'+it.id+'"'+(S.pres?' disabled':'')+'>Approve & copy</button><button class="small" data-open="'+it.id+'">Close</button><button class="small" data-done="'+it.id+'" data-label="Done">Done</button></div></div>';
     }
   }else{
-    h+='<div class="row"><button class="primary small" data-done="'+it.id+'" data-label="Done">Done</button><button class="small" data-later="'+it.id+'">Tomorrow</button></div>';
+    h+='<div class="row"><button class="primary small" data-mkdraft="'+it.id+'">Draft a reply</button><button class="small" data-done="'+it.id+'" data-label="Done">Done</button><button class="small" data-later="'+it.id+'">Tomorrow</button></div>';
   }
   return h+'</div></article>';
 }
@@ -796,10 +797,18 @@ document.addEventListener('click',e=>{
   if(d.biz!==undefined){S.biz=d.biz||null;save();render();if(d.biz&&innerWidth<960)scrollTo({top:0,behavior:'smooth'});return}
   if(b.id==='undo'&&pending){clearTimeout(pending.t);pending=null;toast('Not sent. Your draft is still here.');setTimeout(()=>toast(''),3000);return}
   if(d.open){S.open[d.open]=!S.open[d.open];save();return render()}
-  if(d.copy){const it=(B.items||[]).find(x=>x.id===d.copy);if(!it)return;const t=(S.drafts[it.id]??it.draft).trim();
+  if(d.copy){const it0=(B.items||[]).find(x=>x.id===d.copy);if(!it0)return;const it=S.gen&&S.gen[it0.id]&&!it0.draft?{...it0,...S.gen[it0.id]}:it0;const t=(S.drafts[it.id]??it.draft).trim();
     const ok=()=>{S.done[it.id]='Response approved';S.open[it.id]=false;save();render();flash('✓ Copied. Paste it where it needs to go.')};
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(ok).catch(()=>{const x=document.querySelector('[data-draft="'+it.id+'"]');if(x){x.select();document.execCommand('copy')}ok()});return}
-  if(d.send){const it=(B.items||[]).find(x=>x.id===d.send);if(it&&!pending)send(it);return}
+  if(d.mkdraft){const it=(B.items||[]).find(x=>x.id===d.mkdraft);if(!it)return;b.disabled=true;b.textContent='Writing…';
+    const q='Write a reply for this item so I can send it. Item: '+it.title+(it.why?' ('+it.why+')':'')+(it.to?' To: '+it.to:'')+(it.chat?' This came from the group chat '+it.chat+'.':'');
+    api('/ask',{question:q,history:[],tz:Intl.DateTimeFormat().resolvedOptions().timeZone}).then(r=>{
+      const reps=r.replies||[],rp=reps.find(x=>it.ref&&Number(x.ref)===Number(it.ref))||reps[0];
+      if(rp&&rp.draft){S.gen[it.id]={draft:rp.draft,ref:rp.ref,to:rp.to||it.to,toEmail:rp.toEmail||''}}
+      else{const t=(r.answer||'').trim();if(!t){b.disabled=false;b.textContent='Draft a reply';return flash('There’s no message to answer for this one.')}S.gen[it.id]={draft:t,ref:null}}
+      S.open[it.id]=true;save();render();
+    }).catch(e=>{b.disabled=false;b.textContent='Draft a reply';flash(errText(e))});return}
+  if(d.send){const it0=(B.items||[]).find(x=>x.id===d.send),g0=it0&&S.gen&&S.gen[it0.id],it=it0&&g0&&!it0.draft?{...it0,...g0}:it0;if(it&&!pending)send(it);return}
   if(d.done){S.done[d.done]=d.label||'Done';save();return render()}
   if(d.later){S.later[d.later]=true;save();render();return flash('Moved to tomorrow’s briefing.')}
   if(b.id==='refresh')return refresh(b);
