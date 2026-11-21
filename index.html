@@ -801,11 +801,9 @@ document.addEventListener('click',e=>{
     const ok=()=>{S.done[it.id]='Response approved';S.open[it.id]=false;save();render();flash('✓ Copied. Paste it where it needs to go.')};
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(ok).catch(()=>{const x=document.querySelector('[data-draft="'+it.id+'"]');if(x){x.select();document.execCommand('copy')}ok()});return}
   if(d.mkdraft){const it=(B.items||[]).find(x=>x.id===d.mkdraft);if(!it)return;b.disabled=true;b.textContent='Writing…';
-    const q='Write a reply for this item so I can send it. Item: '+it.title+(it.why?' ('+it.why+')':'')+(it.to?' To: '+it.to:'')+(it.chat?' This came from the group chat '+it.chat+'.':'');
-    api('/ask',{question:q,history:[],tz:Intl.DateTimeFormat().resolvedOptions().timeZone}).then(r=>{
-      const reps=r.replies||[],rp=reps.find(x=>it.ref&&Number(x.ref)===Number(it.ref))||reps[0];
-      if(rp&&rp.draft){S.gen[it.id]={draft:rp.draft,ref:rp.ref,to:rp.to||it.to,toEmail:rp.toEmail||''}}
-      else{const t=(r.answer||'').trim();if(!t){b.disabled=false;b.textContent='Draft a reply';return flash('There’s no message to answer for this one.')}S.gen[it.id]={draft:t,ref:null}}
+    api('/draft',{ref:it.ref||0,title:it.title,why:it.why||'',chat:it.chat||''}).then(r=>{
+      if(!r.draft){b.disabled=false;b.textContent='Draft a reply';return flash('There’s no message to answer for this one.')}
+      S.gen[it.id]={draft:r.draft,ref:r.ref,to:r.to||it.to||'',toEmail:''};
       S.open[it.id]=true;save();render();
     }).catch(e=>{b.disabled=false;b.textContent='Draft a reply';flash(errText(e))});return}
   if(d.send){const it0=(B.items||[]).find(x=>x.id===d.send),g0=it0&&S.gen&&S.gen[it0.id],it=it0&&g0&&!it0.draft?{...it0,...g0}:it0;if(it&&!pending)send(it);return}
