@@ -165,7 +165,7 @@ async function api(path,body){
   if(!r.ok)throw {code:j.error,message:j.error,detail:j.detail,provider:j.provider};
   return j;
 }
-let ACC_P=null;
+let ACC_P=null,DISC_BUSY=false;
 async function ensureAccount(){if(TOKEN)return;if(!ACC_P)ACC_P=api('/account',{owner:S.owner,partner:S.partner}).then(a=>{TOKEN=a.token;try{localStorage.setItem('cc_token',TOKEN)}catch(e){}}).finally(()=>{ACC_P=null});return ACC_P}
 let MB=[];/* connected inboxes from the server */
 let OAUTH={google:false,microsoft:false};
@@ -323,6 +323,9 @@ function setup(){
      +'<div class="row"><button class="primary" id="'+(C.det&&!C.det.oauth?'cConnect':'cNext')+'">'+(C.det&&!C.det.oauth?'Connect':'Continue')+'</button>'+(C.det?'<button class="link" id="cReset">Use a different address</button>':'')+'</div>'+(C.det&&C.det.provider==='gmail'&&OAUTH.google?'</details>':'')+'</div>'
      +'<p class="sub" style="font-size:13px">Your passwords are encrypted and never shown to anyone. You can remove an inbox anytime.</p>';
   }else if(st===2){
+    if(TOKEN&&!S.businesses.length&&!(S.suggest||[]).length&&!DISC_BUSY){DISC_BUSY=true;
+      api('/discover',{}).then(o=>{S.suggest=(o&&Array.isArray(o.businesses)?o.businesses:[]).filter(x=>x&&x.name).slice(0,8);save();render()}).catch(()=>{}).finally(()=>{DISC_BUSY=false})}
+    if(DISC_BUSY&&!(S.suggest||[]).length)h+='<div class="status">Looking through your email for your businesses…</div>';
     const opt=Object.entries(TYPES).map(([k,v])=>'<option value="'+k+'">'+v.label+'</option>').join('');
     h+='<h1>Tell us your <em>businesses</em>.</h1><p class="sub">Name and city. We’ll look it up and show you how we’ll help.</p>'
      +(S.suggest&&S.suggest.length?'<div class="box"><b>Found in your email</b><p class="sub">Tap to add.</p><div class="row">'+S.suggest.map((x,i)=>'<button class="small" data-addsug="'+i+'">+ '+esc(x.name)+(x.city?' · '+esc(x.city):'')+'</button>').join('')+'</div></div>':'')
