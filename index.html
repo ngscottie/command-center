@@ -170,6 +170,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 #chSheet .lrow small{white-space:normal}
 body{overscroll-behavior-y:contain}
 #ptr{position:fixed;top:10px;left:50%;transform:translate(-50%,-80px);z-index:25;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.12);border-radius:99px;padding:8px 16px;font-size:14px;font-weight:700;max-width:calc(100% - 32px);text-align:center;opacity:0;transition:opacity .15s,transform .2s;pointer-events:none;display:flex;gap:8px;align-items:center}
+.rf{display:inline-flex;align-items:center;justify-content:center}.rf.busy svg{animation:sp .8s linear infinite}
 #ptr.show{opacity:1;transform:translate(-50%,0)}
 .spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--red);border-radius:50%;animation:sp 0.8s linear infinite;flex:none}@keyframes sp{to{transform:rotate(360deg)}}
 .urgent{border:2px solid var(--red);background:var(--blush);border-radius:14px;padding:12px 14px;margin:0 0 16px}
@@ -210,7 +211,7 @@ button.stat:active{transform:scale(.98)}
 <body>
 <div class="top">
   <div class="brand"><span id="ownerName">Your</span> Command Center</div>
-  <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
+  <div class="topr"><div class="tools"><button id="pres" aria-pressed="false">Presenting</button><button id="setupBtn">Setup</button></div><button id="refreshBtn" class="lang rf" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="langBtn" class="lang" aria-label="Tiếng Việt / English">VI</button></div>
 </div>
 <nav class="blocks" id="blocks" aria-label="Day blocks"></nav>
 <div id="app"></div>
@@ -758,22 +759,18 @@ if(S.lang==='vi'){addEventListener('DOMContentLoaded',()=>trNode(document.body))
 let QUICK_BUSY=false;
 function pendingCount(){return (B.items||[]).filter(i=>!S.done[i.id]&&!S.later[i.id]).length}
 async function quickCheck(){
-  if(QUICK_BUSY||!TOKEN)return;QUICK_BUSY=true;ptrShow('Checking for anything new…',true);
+  if(QUICK_BUSY||!TOKEN)return;QUICK_BUSY=true;const rb=$('#refreshBtn');rb&&rb.classList.add('busy');ptrShow('Checking for anything new…',true);
   try{
     const r=await api('/quick',{});await loadState();
     if(r.urgent&&r.urgent.length){URGENT={items:r.urgent,at:Date.now()};render();scrollTo({top:0,behavior:'smooth'});ptrShow(r.urgent.length+' thing'+(r.urgent.length===1?' needs':'s need')+' you now',false,2500)}
     else{const p=pendingCount();ptrShow(r.fresh?'Nothing urgent in '+r.fresh+' new message'+(r.fresh===1?'':'s')+'.'+(p?' '+p+' item'+(p===1?'':'s')+' still waiting on your decision.':''):'✓ You’re up to date.'+(p?' '+p+' item'+(p===1?'':'s')+' still waiting on your decision.':''),false,3500)}
   }catch(e){ptrShow(errText(e),false,4000)}
-  QUICK_BUSY=false;
+  QUICK_BUSY=false;$('#refreshBtn')&&$('#refreshBtn').classList.remove('busy');
 }
 let PTR_T;function ptrShow(t,spin,hideAfter){const el=$('#ptr');el.innerHTML=(spin?'<span class="spin" aria-hidden="true"></span>':'')+esc(t);el.classList.add('show');el.style.transform='';clearTimeout(PTR_T);if(hideAfter)PTR_T=setTimeout(()=>el.classList.remove('show'),hideAfter)}
-(()=>{let y0=null,dy=0;const el=$('#ptr'),busy=()=>route!=='home'||ASK.open||EDIT||CONFIRM||CHATCONN||document.querySelector('.isheet:not([hidden]),.welcome:not([hidden])');
-  addEventListener('touchstart',e=>{y0=(scrollY<=0&&!busy()&&!QUICK_BUSY)?e.touches[0].clientY:null;dy=0},{passive:true});
-  addEventListener('touchmove',e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy<=0){el.classList.remove('show');return}const d=Math.min(dy,110);el.classList.add('show');el.style.transform='translate(-50%,'+(d-60)+'px)';el.textContent=dy>80?'Release to check':'Pull down to check'},{passive:true});
-  addEventListener('touchend',()=>{if(y0===null)return;y0=null;if(dy>80)quickCheck();else{el.classList.remove('show');el.style.transform=''}});
-})();
 
 /* ======================= events ======================= */
+document.addEventListener('click',e=>{if(e.target.closest('#refreshBtn'))quickCheck()});
 document.addEventListener('click',e=>{if(e.target.id==='bizSheet'){EDIT=null;render()}if(e.target.id==='cfSheet'){CONFIRM=null;render()}if(e.target.id==='hrSheet'){HOUREDIT=false;render()}if(e.target.id==='chSheet'){if(WAQR&&WAQR.status!=='connected'){const w=WAQR;api('/chats/disconnect',{id:w.source}).then(loadState).catch(()=>{})}waStop();WAQR=null;CHATCONN=null;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='hrIn')$('#hrYes')?.click();if(e.key==='Escape'){if(HOUREDIT){HOUREDIT=false;render()}if(CONFIRM){CONFIRM=null;render()}else if(EDIT&&$('#bizSheet')){EDIT=null;render()}}if(e.key==='Enter'&&e.target.id==='cfIn')$('#cfYes')?.click()});
 document.addEventListener('input',e=>{if(e.target.id==='cfIn')$('#cfYes').disabled=e.target.value.trim().toUpperCase()!=='DELETE'});

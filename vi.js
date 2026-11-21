@@ -37,7 +37,7 @@ window.CC_VI = {
     "Looking through your email for your businesses…": "Đang xem email để tìm doanh nghiệp của bạn…",
     "Powered by": "Phát triển bởi", "Add to Home Screen": "Thêm vào Màn hình chính", "Put Command Center on your home screen": "Đưa Trung tâm điều hành ra màn hình chính", "One tap to your briefing. Opens full screen, like any app.": "Một chạm là mở bản tóm tắt. Mở toàn màn hình như mọi ứng dụng khác.",
     "Welcome to Command Center": "Chào mừng đến Trung tâm điều hành", "Open the invite link you were sent, or paste it here to continue.": "Mở đường dẫn mời đã gửi cho bạn, hoặc dán vào đây để tiếp tục.", "I’m setting up for the first time": "Tôi cài đặt lần đầu",
-    "Needs you now": "Cần bạn ngay", "Got it": "Đã hiểu", "Pull down to check": "Kéo xuống để kiểm tra", "Release to check": "Thả ra để kiểm tra", "Checking for anything new…": "Đang kiểm tra tin mới…", "✓ You’re up to date.": "✓ Mọi thứ đã cập nhật.",
+    "Needs you now": "Cần bạn ngay", "Got it": "Đã hiểu", "Pull down to check": "Kéo xuống để kiểm tra", "Release to check": "Thả ra để kiểm tra", "@Refresh": "Làm mới", "Checking for anything new…": "Đang kiểm tra tin mới…", "✓ You’re up to date.": "✓ Mọi thứ đã cập nhật.",
     "Remove": "Xóa", "Keep it": "Giữ lại",
     "What’s an hour of your time worth?": "Một giờ của bạn đáng giá bao nhiêu?", "We use it to show what your assistant saves you each day.": "Chúng tôi dùng con số này để cho thấy trợ lý giúp bạn tiết kiệm bao nhiêu mỗi ngày.", "Dollars per hour": "Đô la mỗi giờ", "Save": "Lưu",
     // placeholders and labels
