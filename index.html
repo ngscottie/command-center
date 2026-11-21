@@ -12,8 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Summi">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#fbf8f5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#16121a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fffcf7">
 <title>Summi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,12 +22,11 @@
    PICTURE: the current block's stack of compact cards beside a vertical ledger of the owner's businesses with counts and money.
    COLOUR and TYPE: warm white, plum-black ink, lacquer pink-red for action; money in deep green; evening turns to dusk; Manrope.
    LAYOUT: phone first: top bar, block switcher, money stats, cards, business ledger below; desktop puts the ledger on the right. */
-:root{color-scheme:light dark;
---bg:light-dark(#fbf8f5,#16121a);--card:light-dark(#fff,#211b26);--ink:light-dark(#1f1922,#f3eef4);--muted:light-dark(#6b6270,#b2a9b6);
---line:light-dark(#ece4e6,#352c3a);--red:light-dark(#c4203f,#ff5c78);--blush:light-dark(#f8e6e9,#3a2230);
---ok:light-dark(#1b7445,#5ad39a);--okbg:light-dark(#e3f4ea,#173326);--amber:light-dark(#a65d00,#ffb648);--ambg:light-dark(#fff1dc,#3a2a10)}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-body.eve{--bg:light-dark(#f4f1fa,#141223);--card:light-dark(#fff,#1e1b30)}
+:root{color-scheme:light;
+--bg:#f6eee2;--card:#fffcf7;--sand:#efe3d0;--ink:#2b2017;--muted:#76675a;
+--line:#e5d6c1;--red:#c4500a;--hot:#e8721c;--blush:#fde4cb;--glow:#fff1e2;
+--ok:#2d7a3e;--okbg:#e2efd6;--amber:#946200;--ambg:#f7e7bf}
+body.eve{--bg:#f0e6da;--card:#fffaf3;--blush:#f7dfcc}
 *{box-sizing:border-box;min-width:0}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;overflow-x:clip;transition:background .4s}
 button,textarea,input,select{font:inherit;color:inherit}
@@ -59,7 +57,7 @@ h1 em{font-style:normal;color:var(--red)}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .stat b{display:block;font-size:clamp(20px,3.4vw,28px);font-weight:800;line-height:1.15;white-space:nowrap}
 .stat small{font-size:12.5px;color:var(--muted);display:block;line-height:1.3}
-.stat.hero{background:var(--red);border-color:var(--red);color:#fff}.stat.hero small{color:#ffe1e7}
+.stat.hero{background:linear-gradient(135deg,var(--hot),var(--red));border-color:var(--red);color:#fff;box-shadow:0 6px 18px rgba(196,80,10,.25)}.stat.hero small{color:#ffe9d6}
 .stat.money b{color:var(--ok)}
 .sect{display:flex;justify-content:space-between;align-items:baseline;margin:22px 2px 8px;gap:10px;flex-wrap:wrap}
 .sect h2{font-size:15px;margin:0}.sect span{font-size:13px;color:var(--muted)}
@@ -152,7 +150,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 .nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
 /* ask anytime */
 .fab{position:fixed;right:16px;bottom:18px;z-index:8;border-radius:99px;min-height:52px;padding:0 20px;background:var(--red);border-color:var(--red);color:#fff;font-size:15.5px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
-.sheet{position:fixed;inset:0;z-index:20;background:rgba(20,12,18,.45);display:flex;justify-content:flex-end}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(43,32,23,.42);display:flex;justify-content:flex-end}
 .sheet[hidden]{display:none}
 .pane{background:var(--bg);width:min(560px,100%);height:100%;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.2)}
 .phead{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}
@@ -203,7 +201,7 @@ button.stat:active{transform:scale(.98)}
 .topr{display:flex;gap:6px;align-items:center}.lang{min-height:36px;padding:0 10px;font-size:13px;border-radius:99px;font-weight:800;letter-spacing:.04em}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
-.isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+.isheet{position:fixed;inset:0;z-index:30;background:rgba(43,32,23,.42);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
 .isheet[hidden]{display:none}
 .ibox{background:var(--card);width:min(480px,100%);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.2);animation:up .28s ease-out}
 @media(min-width:600px){.isheet{align-items:center}.ibox{border-radius:20px}}
@@ -234,6 +232,40 @@ button.stat:active{transform:scale(.98)}
 .deeptag{font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .askbar .deepbtn{white-space:nowrap}
 .tag.inbox{font-weight:600;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis}
+
+/* Summi warm theme */
+body{background:var(--bg) radial-gradient(1200px 500px at 85% -10%,#fde3c4 0,transparent 60%) no-repeat fixed}
+.top{background:var(--card);border-bottom:3px solid var(--hot);box-shadow:0 2px 10px rgba(120,70,20,.06)}
+.blocks{background:var(--glow);border-bottom:1px solid var(--line)}
+.blocks button{background:var(--card)}
+.blocks button.on{background:var(--ink);border-color:var(--ink);color:#fff8ef}
+.blocks button.now:not(.on){border-color:var(--hot);border-width:2px}
+.blocks .bc{background:var(--hot)}
+button.primary{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 2px 0 #8f3a06}
+button.primary:hover{background:#b14707}
+.card{box-shadow:0 1px 2px rgba(120,70,20,.06);border-left:4px solid var(--line)}
+.card.hot{border-left-color:var(--hot);background:linear-gradient(90deg,var(--glow),var(--card) 55%)}
+.card.hot .num{background:var(--hot);color:#fff}
+.card.opp{border-left-color:var(--ok)}
+.card.done{border-left-color:var(--okbg)}
+.stat{background:var(--card)}
+.stat.money b{color:var(--ok)}
+.plan{background:linear-gradient(135deg,#fff3e4,#fde4cb);border:2px solid var(--hot);box-shadow:0 8px 24px rgba(196,80,10,.12)}
+.plan .ph{color:var(--red)}
+.pchip{background:#fffaf3;border-color:#efc9a3}
+.pchip:first-child{background:var(--ink);color:#fff8ef;border-color:var(--ink)}
+.qgo{background:linear-gradient(135deg,var(--hot),var(--red))!important}
+.fold>summary{background:var(--card)}.fold>summary::after{color:var(--hot)}
+.ledger{background:var(--card)}.lrow.on{background:var(--blush)}
+.locked.ahead{border-color:var(--hot);background:var(--glow)}
+.urgent{border-color:var(--hot);background:linear-gradient(135deg,#fff0de,#fdd9b5)}
+.dock{background:rgba(255,252,247,.94);backdrop-filter:blur(8px);border-top:3px solid var(--hot)}
+.dchips button{background:var(--glow);border-color:#efc9a3}
+.dbar input{background:#fff;border-color:#e5c9a8}
+.tag{background:var(--blush);color:var(--red)}
+.card.flash{outline-color:var(--hot)}
+.credit b{color:var(--red)}
+.brand{color:var(--red)}
 </style>
 </head>
 <body>
@@ -323,7 +355,7 @@ function renderBlocks(){
 function card(it,n){
   const g=S.gen&&S.gen[it.id];if(g&&!it.draft)it={...it,...g,kind:g.ref?'reply':'do'};
   const done=S.done[it.id],open=S.open[it.id];
-  let h='<article data-card="'+esc(it.id)+'" class="card '+(n>3&&!QUEUE?'more ':'')+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
+  let h='<article data-card="'+esc(it.id)+'" class="card '+(it.urg>=3&&it.cat!=='opp'&&!done?'hot ':'')+(n>3&&!QUEUE?'more ':'')+(it.cat==='opp'?'opp ':'')+(done?'done ':'')+(open?'open':'')+'"><div class="num">'+(done?'✓':n)+'</div><div>'
    +'<div class="meta"><span class="tag b">'+esc(it.biz)+'</span>'+(it.inbox&&MB.length>1?'<span class="tag inbox" title="Came in to">✉ '+esc(it.inbox)+'</span>':'')+(it.chat?'<span class="tag chat">'+esc((APPS[it.app]?.name||'Chat')+' · '+it.chat)+'</span>':'')+(it.value?'<span class="tag ok">'+mask(money(it.value))+' '+esc(it.valueLabel||'')+'</span>':it.valueLabel&&it.cat==='opp'?'<span class="tag ok">'+esc(it.valueLabel)+'</span>':'')
    +(it.urg>=3&&!done&&it.cat!=='opp'?'<span class="tag">Top priority</span>':'')+(done?'<span class="tag ok">'+esc(done)+'</span>':'')+'</div>'
    +'<div class="title'+(it.ref?' hasmsg" data-msg="'+it.ref+'" role="button" tabindex="0" title="See the email':'')+'">'+esc(mask(it.title))+'</div>';
