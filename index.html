@@ -364,7 +364,7 @@ function home(){
 /* ======================= setup / onboarding ======================= */
 const STEPS=['Welcome','Your email','Your businesses','Ready'];
 let EDIT=null,CONFIRM=null,CHATCONN=null;
-const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp',live:false,note:'WhatsApp Business numbers are coming next. Personal WhatsApp has no official connection.'},demo:{name:'Zalo (sample)',live:false}};
+const APPS={groupme:{name:'GroupMe',live:true},zalo:{name:'Zalo',live:false,note:'Personal Zalo has no official connection. Zalo Official Account (for business chats) is coming next.'},whatsapp:{name:'WhatsApp Business',live:true,note:'Customer messages to your WhatsApp Business number.'},demo:{name:'Zalo (sample)',live:false}};
 function chatSheet(){
   const a=CHATCONN;
   let h='<div class="isheet" id="chSheet" role="dialog" aria-modal="true" aria-labelledby="chTitle"><div class="ibox"><b id="chTitle" style="font-size:18px">Connect a group chat</b>';
@@ -372,6 +372,10 @@ function chatSheet(){
     +'<input id="chTok" placeholder="Paste your GroupMe access token" autocomplete="off" spellcheck="false" style="width:100%">'
     +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">We read your groups and direct messages from the last few days. Nothing is posted to your chats.</p>'
     +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect GroupMe</button></div>';
+  else if(a==='whatsapp')h+='<ol class="isteps" style="margin-top:12px"><li><i>1</i><span>Open your WhatsApp setup in <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> (we set this up together the first time)</span></li><li><i>2</i><span>Under <b>WhatsApp → API Setup</b>, copy the <b>Phone number ID</b> and the <b>access token</b></span></li><li><i>3</i><span>Paste both here</span></li></ol>'
+    +'<input id="chPid" placeholder="Phone number ID" inputmode="numeric" autocomplete="off" style="width:100%;margin-bottom:8px"><input id="chTok" placeholder="Access token" autocomplete="off" spellcheck="false" style="width:100%">'
+    +'<p id="chErr" style="color:var(--red);font-weight:700;font-size:14px;margin:8px 0 0" hidden></p><p class="sub" style="font-size:13px;margin:8px 0 0">New customer messages to your WhatsApp Business number show up in your briefing. Nothing is sent without you.</p>'
+    +'<div class="ibtns" style="margin-top:14px"><button id="chBack">Back</button><button class="primary" id="chGo">Connect WhatsApp</button></div>';
   else h+='<p class="sub">Pick the app your chats are in.</p><div class="ledger">'+['groupme','zalo','whatsapp'].map(k=>'<div class="lwrap" style="grid-template-columns:minmax(0,1fr) auto"><div class="lrow" style="cursor:default"><span>'+APPS[k].name+'</span><small>'+(APPS[k].live?'Ready to connect':esc(APPS[k].note))+'</small></div>'+(APPS[k].live?'<button class="small primary" style="margin:10px" data-chapp="'+k+'">Connect</button>':'<span class="tag" style="margin:16px 12px;align-self:center">Coming soon</span>')+'</div>').join('')+'</div>'
     +'<div class="ibtns one" style="margin-top:14px"><button id="chClose">Close</button></div>';
   return h+'</div></div>';
@@ -709,9 +713,9 @@ document.addEventListener('click',e=>{
   if(d.chapp){CHATCONN=d.chapp;render();setTimeout(()=>$('#chTok')?.focus(),50);return}
   if(b.id==='chBack'){CHATCONN='pick';return render()}
   if(b.id==='chClose'){CHATCONN=null;return render()}
-  if(b.id==='chGo'){const tok=($('#chTok').value||'').trim();if(!tok)return;b.disabled=true;b.textContent='Connecting…';
-    api('/chats/connect',{app:'groupme',token:tok}).then(r=>{CHATCONN=null;return loadState().then(()=>flash('✓ GroupMe connected'+(r.messages?': '+r.messages+' recent messages read.':'.')+' Your next briefing will include it.'))})
-      .catch(e=>{b.disabled=false;b.textContent='Connect GroupMe';const m=$('#chErr');m.textContent=e.code==='auth_failed'?'GroupMe didn’t accept that token. Copy it again from dev.groupme.com.':errText(e);m.hidden=false});return}
+  if(b.id==='chGo'){const app=CHATCONN,tok=($('#chTok').value||'').trim(),pid=($('#chPid')?.value||'').trim(),nm=APPS[app].name,label=b.textContent;if(!tok||(app==='whatsapp'&&!pid))return;b.disabled=true;b.textContent='Connecting…';
+    api('/chats/connect',{app,token:tok,phoneId:pid}).then(r=>{CHATCONN=null;return loadState().then(()=>flash('✓ '+nm+' connected'+(r.messages?': '+r.messages+' recent messages read.':'.')+' Your next briefing will include it.'))})
+      .catch(e=>{b.disabled=false;b.textContent=label;const m=$('#chErr');m.textContent=e.code==='auth_failed'?nm+' didn’t accept that. Copy it again and paste the whole thing.':errText(e);m.hidden=false});return}
   if(d.delchat){const c=CH.find(x=>x.id===d.delchat);CONFIRM={kind:'chat',id:d.delchat,label:c?(APPS[c.app]?.name||c.app)+(c.name?' · '+c.name:''):'this chat'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return}
   if(b.id==='addInbox'){route='setup';S.setupStep=1;EDIT=null;save();scrollTo(0,0);return render()}
   if(d.rmmb){const mb=MB.find(x=>x.id===d.rmmb);CONFIRM={kind:'mb',id:d.rmmb,label:mb?mb.email:'this inbox'};render();setTimeout(()=>$('#cfIn')?.focus(),50);return;api('/disconnect',{id:d.rmmb}).then(loadState);return}
