@@ -161,6 +161,11 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px;margin:8px 2px}
 .ldel{min-height:0;border:0;border-radius:0;background:var(--red);color:#fff;padding:0 6px;font-size:12px;font-weight:800}
 .lwrap:has(.ldel){grid-template-columns:minmax(0,1fr) 84px}
 .lwrap.biz{grid-template-columns:minmax(0,1fr) 40px 40px}.lwrap.biz:has(.ldel){grid-template-columns:minmax(0,1fr) 40px 84px}
+.a ul.pts{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px}
+.a ul.pts li{margin:0;padding:8px 10px;border-left:3px solid var(--red);background:var(--bg);border-radius:0 10px 10px 0}
+.a .pt{display:block;font-weight:800;font-size:15.5px;color:var(--ink)}
+.a .when{display:inline-block;margin:3px 6px 2px 0;padding:0 8px;border-radius:99px;background:var(--blush);color:var(--red);font-weight:700;font-size:12.5px;line-height:20px}
+.a .ptx{display:block;font-size:14.5px}.a ul.pts small{display:block;margin-top:2px}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -589,7 +594,7 @@ function askRender(){
 }
 function askAnswer(a,ti){
   let h='<div class="a"><p>'+esc(mask(a.answer||''))+'</p>';
-  if(a.points&&a.points.length)h+='<ul>'+a.points.map(p=>'<li>'+esc(mask(p.text))+(p.when||p.biz?' <small>'+esc([p.when,p.biz].filter(Boolean).join(' · '))+'</small>':'')+'</li>').join('')+'</ul>';
+  if(a.points&&a.points.length)h+='<ul class="pts">'+a.points.map(p=>'<li>'+(p.title?'<b class="pt">'+esc(mask(p.title))+'</b>':'')+(p.when?'<span class="when">'+esc(p.when)+'</span>':'')+'<span class="ptx">'+esc(mask(p.text))+'</span>'+(p.biz?'<small>'+esc(p.biz)+'</small>':'')+'</li>').join('')+'</ul>';
   for(const r of a.replies||[]){
     const k=ti+':'+r.id,d=ASK.drafts[k]??r.draft;
     h+='<div class="rep">'+(ASK.sent[k]?'<span class="drafted">✓ '+esc(ASK.sent[k])+' to '+esc(r.to)+'</span>':
