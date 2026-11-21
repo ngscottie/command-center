@@ -175,6 +175,8 @@ body{overscroll-behavior-y:contain}
 .urgent{border:2px solid var(--red);background:var(--blush);border-radius:14px;padding:12px 14px;margin:0 0 16px}
 .urgent .uhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.urgent .uhead b{color:var(--red);font-size:15px;text-transform:uppercase;letter-spacing:.04em}
 .urgent .uitem{background:var(--card);border-radius:10px;padding:10px 12px;margin-top:8px}.urgent .uitem .title{font-weight:700}
+button.stat{display:block;width:100%;text-align:left;min-height:0;padding:10px 12px;border-radius:14px;font-weight:400;cursor:pointer}
+button.stat:active{transform:scale(.98)}
 .credit .link{display:block;margin:6px auto 0;font-size:13px}
 /* install */
 .isheet{position:fixed;inset:0;z-index:30;background:rgba(20,12,18,.45);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
@@ -327,14 +329,21 @@ function home(){
   const scoped=S.biz?all.filter(i=>i.biz===S.biz):all;
   const st=B.stats||{},hours=(st.minutesSaved||0)/60;
   const oppMoney=all.filter(i=>i.cat==='opp'&&!S.done[i.id]).reduce((a,i)=>a+(i.value||0),0);
-  const stats='<div class="stats"><div class="stat hero"><small>Need you today</small><b>'+all.filter(i=>!S.done[i.id]).length+'</b></div>'
-   +'<div class="stat money"><small>Money waiting on you</small><b>'+mask(money(oppMoney))+'</b></div>'
+  const stats='<div class="stats"><button class="stat hero" id="needToday" aria-label="See everything that needs you today"><small>Need you today ›</small><b>'+all.filter(i=>!S.done[i.id]).length+'</b></button>'
+   +'<button class="stat money" data-view="opp" aria-label="See your leads"><small>Money waiting on you ›</small><b>'+mask(money(oppMoney))+'</b></button>'
    +'<div class="stat money"><small>Your time saved ('+hours.toFixed(1)+' h)</small><b>'+mask(money(hours*S.hourValue))+'</b></div></div>'
    +'<div class="row jump"><button class="small" id="jumpBiz">'+(S.biz?esc(S.biz)+' \u00b7 change':'Your '+S.businesses.length+' businesses \u2193')+'</button>'+(S.biz?'<button class="link" data-biz="">Show all</button>':'')+'</div>';
   let main='<div class="status" id="status" hidden></div>';
   if(URGENT&&URGENT.items.length)main+='<section class="urgent" aria-label="Needs you now"><div class="uhead"><b>Needs you now</b><button class="link" id="urgentOk">Got it</button></div>'+URGENT.items.map(u=>'<div class="uitem"><span class="tag b">'+esc(u.biz||'')+'</span><div class="title">'+esc(mask(u.title))+'</div>'+(u.why?'<p class="why">'+esc(mask(u.why))+'</p>':'')+'</div>').join('')+'<p class="sub" style="font-size:12.5px;margin:6px 0 0">Checked '+new Date(URGENT.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'. Everything else will be in your next briefing.</p></section>';
   const list=k=>scoped.filter(i=>i.cat===k);
   const later=(k,label)=>{const n=list(k).filter(i=>!S.done[i.id]).length;return n?'<div class="locked"><b>'+n+' '+label+'</b>Ready at '+hourLabel(k==='prio'?S.blocks.opp:S.blocks.prio)+'.</div>':''};
+  if(S.view==='today'){
+    const open=all.filter(i=>!S.done[i.id]);let n=0;
+    main+='<button class="link" id="backDay" style="margin-bottom:4px">← Back to your day</button><h1><em>'+(open.length||'Nothing')+' thing'+(open.length===1?'':'s')+'</em> need'+(open.length===1?'s':'')+' you today.</h1><p class="sub">Every open item across all your businesses, most important first.</p>'+stats;
+    for(const [k,l] of [['prio','Focus'],['opp','Leads'],['work','Progress']]){const its=open.filter(i=>i.cat===k).sort((a,b)=>(b.urg||0)-(a.urg||0));if(its.length)main+='<div class="sect"><h2>'+l+'</h2><span>'+its.length+'</span></div>'+its.map(it=>card(it,++n)).join('')}
+    if(!open.length)main+='<div class="calm">All clear. Nothing needs you right now.</div>';
+    return '<div class="layout"><main>'+main+'</main>'+ledger(all)+'</div>';
+  }
   if(blk==='eve'){
     const g=visible(B.good||[]).filter(x=>!S.biz||x.biz===S.biz);
     main+='<h1>Good evening, '+esc(S.owner)+'. <em>'+g.length+' accomplishment'+(g.length===1?'':'s')+'</em> today.</h1><p class="sub">Nothing here needs a decision tonight.</p>'
@@ -351,7 +360,7 @@ function home(){
     }else if(blk==='prio'){
       const p=list('prio'),open=p.filter(i=>!S.done[i.id]);
       const missed=list('opp').filter(i=>!S.done[i.id]);
-      main+='<h1><em>'+(open.length||'No')+' thing'+(open.length===1?'':'s')+' to focus on</em> this morning.</h1>'+pre+stats
+      main+='<h1>'+(open.length?'<em>'+open.length+' thing'+(open.length===1?'':'s')+' to focus on</em> this morning.':'<em>Nothing</em> to focus on this morning.')+'</h1>'+pre+stats
        +'<div class="sect"><h2>Focus</h2><span>most important first, done by '+hourLabel(S.blocks.prio)+'</span></div>'
        +(p.length?p.map((it,i)=>card(it,i+1)).join(''):'<p class="sub">Nothing urgent today.</p>')
        +(missed.length?'<details><summary>'+missed.length+' opportunit'+(missed.length===1?'y':'ies')+' still open from this morning</summary>'+missed.map((it,i)=>card(it,i+1)).join('')+'</details>':'');
@@ -785,6 +794,8 @@ document.addEventListener('click',e=>{
     if(c.kind==='biz'){S.businesses=S.businesses.filter(x=>x.key!==c.id);delete S.profiles[c.id];if(S.biz===c.id)S.biz=null;save();render();return flash(c.label+' removed.')}
     render();flash('Removing '+c.label+'…');
     api('/disconnect',{id:c.id}).then(()=>{for(const z of S.businesses)z.addr=(z.addr||[]).filter(a=>a!==c.label);save();return loadState()}).then(()=>flash(c.label+' removed. We no longer read it.')).catch(e=>{render();flash(errText(e))});return}
+  if(b.id==='needToday'){S.view='today';S.biz=null;save();render();scrollTo({top:0,behavior:'smooth'});return}
+  if(b.id==='backDay'){S.view='auto';save();render();scrollTo({top:0,behavior:'smooth'});return}
   if(b.id==='urgentOk'){URGENT=null;return render()}
   if(b.id==='addChat'){CHATCONN='pick';return render()}
   if(d.chapp){CHATCONN=d.chapp;render();setTimeout(()=>$('#chTok')?.focus(),50);return}
