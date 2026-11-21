@@ -191,7 +191,7 @@ const hourLabel=h=>{const d=new Date();d.setHours(h,0,0,0);return d.toLocaleTime
    blocks.opp  to blocks.prio   Priorities      problems, highest priority first
    blocks.prio to blocks.work   The business    everything else that moves the business forward
    after blocks.work            Good news       nothing that needs a decision                                    */
-const BLOCKS=[{k:'opp',name:'Pipeline'},{k:'prio',name:'Focus'},{k:'work',name:'Progress'},{k:'eve',name:'Wins'}];
+const BLOCKS=[{k:'opp',name:'Leads'},{k:'prio',name:'Focus'},{k:'work',name:'Progress'},{k:'eve',name:'Accomplishments'}];
 function nowBlock(){const h=new Date().getHours(),b=S.blocks;return h>=4&&h<b.opp?'opp':h>=b.opp&&h<b.prio?'prio':h>=b.prio&&h<b.work?'work':'eve'}
 const curBlock=()=>S.view==='auto'?nowBlock():S.view;
 const blockTime=k=>{const b=S.blocks;return k==='opp'?'before '+hourLabel(b.opp):k==='prio'?hourLabel(b.opp)+'–'+hourLabel(b.prio):k==='work'?hourLabel(b.prio)+'–'+hourLabel(b.work):'after '+hourLabel(b.work)};
@@ -256,15 +256,15 @@ function home(){
   const later=(k,label)=>{const n=list(k).filter(i=>!S.done[i.id]).length;return n?'<div class="locked"><b>'+n+' '+label+'</b>Ready at '+hourLabel(k==='prio'?S.blocks.opp:S.blocks.prio)+'.</div>':''};
   if(blk==='eve'){
     const g=visible(B.good||[]).filter(x=>!S.biz||x.biz===S.biz);
-    main+='<h1>Good evening, '+esc(S.owner)+'. <em>'+g.length+' win'+(g.length===1?'':'s')+'</em> today.</h1><p class="sub">Nothing here needs a decision tonight.</p>'
-     +stats+'<div class="sect"><h2>Wins</h2></div>'+goodList(g)
+    main+='<h1>Good evening, '+esc(S.owner)+'. <em>'+g.length+' accomplishment'+(g.length===1?'':'s')+'</em> today.</h1><p class="sub">Nothing here needs a decision tonight.</p>'
+     +stats+'<div class="sect"><h2>Accomplishments</h2></div>'+goodList(g)
      +'<div class="calm">Everything else is handled or set for tomorrow morning. Enjoy your evening.</div>';
   }else{
     const pre='<p class="sub">'+esc(B.source||'Prepared')+' · '+fmtTime(B.preparedAt)+'. Replies are already written; you just approve.</p>';
     if(blk==='opp'){
       const o=list('opp'),open=o.filter(i=>!S.done[i.id]);
       main+='<h1>Good morning, '+esc(S.owner)+'. <em>'+(open.length||'No')+' money move'+(open.length===1?'':'s')+'</em> first.</h1>'+pre+stats
-       +'<div class="sect"><h2>Pipeline</h2><span>waiting for you, before '+hourLabel(S.blocks.opp)+'</span></div>'
+       +'<div class="sect"><h2>Leads</h2><span>waiting for you, before '+hourLabel(S.blocks.opp)+'</span></div>'
        +(o.length?o.map((it,i)=>card(it,i+1)).join(''):'<p class="sub">No new opportunities this morning.</p>')
        +'<div class="sect"><h2>Coming up</h2></div>'+later('prio','priorities after breakfast')+'<div style="height:8px"></div>'+later('work','items for the afternoon');
     }else if(blk==='prio'){
